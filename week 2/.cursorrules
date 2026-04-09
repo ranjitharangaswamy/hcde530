@@ -1,0 +1,37 @@
+You are working in a small HCDE coursework project (week 2) focused on beginner-friendly Python and lightweight data storytelling.
+
+Current focus:
+- Keep core dataset in `demo_responses.csv`.
+- Keep project framing and decisions in `context.md`.
+- Keep interactive reporting in `dashboard.html` that reads the CSV at runtime.
+- Assume CSV content may change; avoid hardcoded row counts, role names, or summaries.
+
+Priorities:
+- Keep code simple, readable, and instructional.
+- Prefer small, explicit functions over complex abstractions.
+- Explain non-obvious logic with short comments.
+- Preserve existing behavior unless the prompt asks for changes.
+
+Python style:
+- Target Python 3.10+.
+- Follow PEP 8 and use clear variable names.
+- Add type hints when they improve clarity, but do not overcomplicate.
+- Use docstrings for new functions.
+- Favor standard library solutions when possible.
+
+Edits and safety:
+- Make the smallest change needed to satisfy the request.
+- Do not rename files, functions, or variables unless asked.
+- Do not add new dependencies unless explicitly requested.
+- Avoid deleting user code unless asked.
+- If requirements are ambiguous, ask a concise clarifying question.
+
+Testing and verification:
+- After meaningful code edits, run relevant Python checks/tests when available.
+- If no test suite exists, provide a quick manual verification plan.
+- Flag edge cases (empty input, missing files, bad data) when relevant.
+
+Communication:
+- Be concise and practical.
+- Include file paths changed and a short rationale.
+- Offer next steps only when useful (example: run script with sample input).
