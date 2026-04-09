@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Week 2 Response Dashboard</title>
+    <style>
+      :root {
+        --bg: #f7f8fb;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --accent: #2563eb;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      h1 {
+        margin: 0 0 6px;
+      }
+      .sub {
+        margin: 0 0 18px;
+        color: var(--muted);
+      }
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      button {
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: #cbd5e1;
+      }
+      .status {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+      }
+      .metric-label {
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+      .metric-value {
+        margin-top: 6px;
+        font-size: 1.35rem;
+        font-weight: 600;
+      }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
+      }
+      h2 {
+        margin: 0 0 10px;
+        font-size: 1.05rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        font-size: 0.86rem;
+        color: var(--muted);
+      }
+      .role-bars {
+        display: grid;
+        gap: 8px;
+      }
+      .bar-row {
+        display: grid;
+        grid-template-columns: 190px 1fr 60px;
+        gap: 10px;
+        align-items: center;
+      }
+      .bar-track {
+        width: 100%;
+        height: 10px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%;
+        background: var(--accent);
+      }
+      .small {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .bar-row {
+          grid-template-columns: 120px 1fr 46px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Week 2 Research Response Dashboard</h1>
+      <p class="sub">Reads `demo_responses.csv` at runtime so updates appear after refresh.</p>
+
+      <div class="toolbar">
+        <button id="reloadBtn" type="button">Reload CSV</button>
+        <span id="status" class="status">Loading...</span>
+      </div>
+
+      <section class="grid" id="metrics"></section>
+
+      <section class="panel">
+        <h2>Responses by Role</h2>
+        <div id="roleBars" class="role-bars"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Response Details</h2>
+        <div class="small">Preview shows first 100 characters of each response.</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Participant</th>
+              <th>Role</th>
+              <th>Words</th>
+              <th>Response Preview</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </section>
+    </div>
+
+    <script>
+      const CSV_PATH = "demo_responses.csv";
+
+      function parseCsv(text) {
+        const rows = [];
+        let current = "";
+        let row = [];
+        let inQuotes = false;
+
+        for (let i = 0; i < text.length; i += 1) {
+          const ch = text[i];
+          const next = text[i + 1];
+
+          if (ch === '"') {
+            if (inQuotes && next === '"') {
+              current += '"';
+              i += 1;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (ch === "," && !inQuotes) {
+            row.push(current);
+            current = "";
+          } else if ((ch === "\n" || ch === "\r") && !inQuotes) {
+            if (ch === "\r" && next === "\n") {
+              i += 1;
+            }
+            row.push(current);
+            current = "";
+            if (row.some((cell) => cell.trim() !== "")) {
+              rows.push(row);
+            }
+            row = [];
+          } else {
+            current += ch;
+          }
+        }
+
+        if (current.length > 0 || row.length > 0) {
+          row.push(current);
+          if (row.some((cell) => cell.trim() !== "")) {
+            rows.push(row);
+          }
+        }
+
+        if (rows.length === 0) return [];
+
+        const headers = rows[0].map((h) => h.trim());
+        return rows.slice(1).map((cells) => {
+          const obj = {};
+          headers.forEach((header, idx) => {
+            obj[header] = (cells[idx] ?? "").trim();
+          });
+          return obj;
+        });
+      }
+
+      function countWords(text) {
+        const cleaned = (text || "").trim();
+        return cleaned ? cleaned.split(/\s+/).length : 0;
+      }
+
+      function preview(text, maxLen = 100) {
+        if (text.length <= maxLen) return text;
+        return `${text.slice(0, maxLen)}...`;
+      }
+
+      function renderMetrics(data) {
+        const words = data.map((d) => countWords(d.response));
+        const total = words.length;
+        const shortest = total ? Math.min(...words) : 0;
+        const longest = total ? Math.max(...words) : 0;
+        const avg = total ? (words.reduce((a, b) => a + b, 0) / total).toFixed(1) : "0.0";
+
+        const metrics = [
+          { label: "Total Responses", value: String(total) },
+          { label: "Shortest Response", value: `${shortest} words` },
+          { label: "Longest Response", value: `${longest} words` },
+          { label: "Average Length", value: `${avg} words` },
+        ];
+
+        const el = document.getElementById("metrics");
+        el.innerHTML = metrics
+          .map(
+            (m) => `
+              <article class="card">
+                <div class="metric-label">${m.label}</div>
+                <div class="metric-value">${m.value}</div>
+              </article>
+            `
+          )
+          .join("");
+      }
+
+      function renderRoleBars(data) {
+        const counts = {};
+        data.forEach((item) => {
+          const role = item.role || "Unknown";
+          counts[role] = (counts[role] || 0) + 1;
+        });
+
+        const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+        const max = entries.length ? entries[0][1] : 1;
+
+        const el = document.getElementById("roleBars");
+        if (entries.length === 0) {
+          el.innerHTML = "<div class='small'>No rows available.</div>";
+          return;
+        }
+
+        el.innerHTML = entries
+          .map(
+            ([role, count]) => `
+              <div class="bar-row">
+                <div>${role}</div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width:${(count / max) * 100}%"></div>
+                </div>
+                <div>${count}</div>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function renderTable(data) {
+        const el = document.getElementById("rows");
+        el.innerHTML = data
+          .map((item) => {
+            const words = countWords(item.response);
+            return `
+              <tr>
+                <td>${item.participant_id || ""}</td>
+                <td>${item.role || ""}</td>
+                <td>${words}</td>
+                <td>${preview(item.response || "")}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      async function loadCsv() {
+        const status = document.getElementById("status");
+        status.textContent = "Loading...";
+        try {
+          const response = await fetch(CSV_PATH, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`Failed to load CSV (${response.status})`);
+          }
+          const text = await response.text();
+          const data = parseCsv(text);
+          renderMetrics(data);
+          renderRoleBars(data);
+          renderTable(data);
+          status.textContent = `Loaded ${data.length} rows from ${CSV_PATH}`;
+        } catch (error) {
+          status.textContent = "Could not load CSV. Run from a local server.";
+          document.getElementById("metrics").innerHTML = "";
+          document.getElementById("roleBars").innerHTML =
+            "<div class='small'>No data loaded.</div>";
+          document.getElementById("rows").innerHTML = "";
+          console.error(error);
+        }
+      }
+
+      document.getElementById("reloadBtn").addEventListener("click", loadCsv);
+      loadCsv();
+    </script>
+  </body>
+</html>
