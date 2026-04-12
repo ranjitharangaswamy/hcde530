@@ -52,3 +52,65 @@ This aligns with a legal mindset that documentation functions like a brief or a 
 Good context reduces the need for constant intervention
 
 —
+
+## Test competency (Week 2 response check)
+
+This section applies the project **test-competency** skill: a repeatable way to check qualitative **responses** against a user-research **story** rubric, then summarize who the users sound like and what they need end-to-end.
+
+### What the skill is
+
+- **Where it lives:** `.cursor/skills/test-competency/SKILL.md` (with the verification matrix in `user-research-story-matrix.md`).
+- **What it does:** (1) tags each quote with story types (e.g. situation, problem, workaround, stakeholder), (2) scores **evidence strength** (strong / adequate / weak), (3) builds one **synthetic persona** from patterns across the set, and (4) draws a **user journey map** so needs stay explicit—not jump straight to solutions.
+
+### Data for this week
+
+- **Source:** `demo_responses.csv` (synthetic UX practitioner interviews: **25** rows, columns `participant_id`, `role`, `response`).
+- **Why this matches Week 2:** the coursework thread is code + documentation + surfacing research data; this corpus stands in for “messy qualitative input” the same scripts and dashboard interpret.
+
+### Verification summary (user research stories)
+
+Tags are from the matrix: `situation`, `problem`, `goal`, `workaround`, `emotion`, `stakeholder`, `evidence-of-impact`.
+
+| Signal | What we see in the 25 responses |
+|--------|----------------------------------|
+| **Coverage** | Almost every response combines **situation** (how people work) + **problem** (bottleneck or tension). **Stakeholder** conflict appears often (engineering, legal, leadership). **Workaround** shows up repeatedly (hallway tests, shorter briefs, async synthesis, confidence ratings). |
+| **Evidence strength** | The majority read as **strong**: first-person, concrete scenes (e.g. diary study vs. claimed behavior, killing features, onboarding with no owner). A few lean **adequate** when the claim is broad (“always,” “nobody”) but still anchored in role context. |
+| **Risk pattern** | Many **problem** + **emotion** (frustration) stories; **evidence-of-impact** is present but uneven—several people describe decisions *not* changing, which is itself a finding. |
+| **Competency bar** | Under the skill’s rule (*≥2 tags* and adequate+ evidence), **most rows pass** as rich narratives; borderline cases tend to be shortest or most generic—where you’d add a follow-up probe for a specific instance. |
+
+*Illustrative row checks (abbreviated):*
+
+| ID | Tags (sample) | Strength | Note |
+|----|----------------|----------|------|
+| P02 | problem, stakeholder, workaround, emotion | Strong | “Framing research as risk reduction” = workaround + stakeholder bridge |
+| P08 | problem, stakeholder, emotion | Strong | Findings vs. decisions gap—outcome is organizational |
+| P13 | situation, problem, evidence-of-impact | Strong | Concrete contradiction (diary vs. self-report) |
+| P20 | evidence-of-impact, goal | Strong | Features killed—rare clear impact story |
+| P22 | problem, stakeholder, situation | Strong | Ownership gap across functions |
+
+### Sample persona (synthetic — from this week’s corpus)
+
+**Alex Chen — mid-career cross-functional UX role (blend of researcher, designer, PM voices)**  
+People in this sample are trying to **run credible research inside fast product cycles**, **bring others along**, and **see work land in decisions**—not only in decks.
+
+- **Goals:** protect time for discovery; get findings into decisions; reduce recruiting and synthesis drag; improve clarity for users (language, a11y, errors).
+- **Frustrations:** research squeezed late; low documentation upstream; power dynamics (“senior already knows”); synthesis fatigue; tools/process that don’t match urgency.
+- **Behaviors (data-grounded):** reframing research as risk reduction; hallway tests; shorter readouts; confidence ratings; async boards; AI-assisted transcripts with human pass; pushing terminology and error copy earlier.
+- **Quote anchors:** P04 recruiting bottleneck; P08 findings not changing decisions; P14 reports nobody reads; P20 killing features from research.
+
+### User journey map (needs-focused)
+
+| Stage | User actions / context | Needs (explicit) | Pain points | Opportunities |
+|-------|-------------------------|------------------|-------------|----------------|
+| **Frame the problem** | Read vague briefs; interview stakeholders to learn what the product is | Understand real goals and constraints; avoid building the wrong thing | Missing docs; unclear product intent | Lightweight stakeholder alignment rituals; clearer problem statements |
+| **Plan research** | Fight for calendar time; recruit; choose methods | Get participants; secure time in the plan; match method to risk | Recruiting bottleneck; time boxed to sprint start | Panels; standing research slots; method matched to decision risk |
+| **Execute** | Run sessions; balance rigor and speed | Listen well; capture usable signal; avoid bias | Steering vs. listening; covering too many topics | Session discipline; paired moderators or scripts |
+| **Synthesize** | Affinity mapping; async Miro; AI assist | Turn data into themes the team will use | Participation drops; report writing eats time | Shorter briefs; async norms; AI + human nuance pass |
+| **Influence decisions** | Present decks; push back on seniors; tie to roadmaps | Translate findings into choices; protect users when patterns misfit | Nods then business as usual; design system as crutch | Confidence labels; traceability to decisions; exec-ready short forms |
+| **Ship & learn** | Handoffs for IA, content, errors; longitudinal studies when possible | Same vocabulary; accessible behavior; learn over time | Siloed ownership; legal vs. plain language; no longitudinal budget | Terminology audits; early a11y sessions; diary studies when stakes warrant |
+
+**Key moments (needs peak):** (1) **Recruiting / scope** — can’t learn without people and focus. (2) **Synthesis participation** — insight dies if the team won’t engage. (3) **Decision meeting** — research meets power and habit. (4) **Handoff to UI/content** — language and errors become user reality. (5) **Proof of impact** — without examples like killing a feature, value stays rhetorical.
+
+---
+
+*This appendix documents how Week 2’s qualitative “response” set was checked with **test-competency**; regenerate or extend if `demo_responses.csv` changes.*
