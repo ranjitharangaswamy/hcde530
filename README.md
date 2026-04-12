@@ -1,4 +1,5 @@
 # hcde530
+A cool log of my masters course 530- Computational concepts in HCDE and a record of my in-class 'experiments' or assignments. 
 
 ## Cursor project skill
 
