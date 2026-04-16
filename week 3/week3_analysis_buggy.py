@@ -44,8 +44,8 @@ def clean_role(value):
     return role
 
 
-def participant_score_summary(row):
-    """Calculate a participant score from satisfaction + experience and return a one-line summary."""
+def participant_score_details(row):
+    """Return score fields for a row, or None if name/satisfaction/years are missing or invalid."""
     name = (row.get("participant_name") or "").strip()
     role = clean_role(row.get("role")) or "Unknown Role"
     satisfaction = parse_int(row.get("satisfaction_score"))
@@ -55,7 +55,44 @@ def participant_score_summary(row):
         return None
 
     score = (satisfaction * 20) + years
-    return f"{name} ({role}) score: {score} - satisfaction {satisfaction}/5 with {years} years experience."
+    summary = (
+        f"{name} ({role}) score: {score} - satisfaction {satisfaction}/5 with {years} years experience."
+    )
+    return {
+        "participant_score": score,
+        "summary": summary,
+    }
+
+
+def participant_score_summary(row):
+    """Calculate a participant score from satisfaction + experience and return a one-line summary."""
+    details = participant_score_details(row)
+    return details["summary"] if details else None
+
+
+def write_participant_scores_csv(rows, output_file="participant_scores_cleaned.csv"):
+    """Write rows with computed participant_score and summary to a new CSV file."""
+    if not rows:
+        return
+
+    base_fieldnames = list(rows[0].keys())
+    extra = ["participant_score", "summary"]
+    fieldnames = base_fieldnames + [c for c in extra if c not in base_fieldnames]
+
+    cleaned_out = []
+    for row in rows:
+        details = participant_score_details(row)
+        if details is None:
+            continue
+        out_row = {k: row.get(k, "") for k in base_fieldnames}
+        out_row["participant_score"] = details["participant_score"]
+        out_row["summary"] = details["summary"]
+        cleaned_out.append(out_row)
+
+    with open(output_file, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(cleaned_out)
 
 
 # Load the survey data from a CSV file
@@ -117,3 +154,6 @@ for row in rows:
     summary = participant_score_summary(row)
     if summary is not None:
         print(f"  {summary}")
+
+write_participant_scores_csv(rows, "participant_scores_cleaned.csv")
+print("\nWrote cleaned participant scores to participant_scores_cleaned.csv")
