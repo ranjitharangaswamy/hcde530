@@ -1,7 +1,7 @@
 import csv
 
 
-def clean_responses(input_file: str = "responses.csv", output_file: str = "responses_cleaned.csv") -> None:
+def clean_responses(input_file: str = "responses.csv", output_file: str = "responses_cleaned.csv") -> list[dict[str, str]]:
     with open(input_file, mode="r", newline="", encoding="utf-8") as infile:
         reader = csv.DictReader(infile)
         fieldnames = reader.fieldnames
@@ -33,6 +33,25 @@ def clean_responses(input_file: str = "responses.csv", output_file: str = "respo
         writer.writeheader()
         writer.writerows(cleaned_rows)
 
+    return cleaned_rows
+
+
+def summarize_data(cleaned_data: list[dict[str, str]]) -> str:
+    row_count = len(cleaned_data)
+    unique_roles = sorted({(row.get("role") or "").strip() for row in cleaned_data if (row.get("role") or "").strip()})
+    empty_name_count = 0
+
+    for row in cleaned_data:
+        name_value = (row.get("name") or row.get("participant_name") or "").strip()
+        if not name_value:
+            empty_name_count += 1
+
+    return (
+        f"Cleaned data has {row_count} rows, {len(unique_roles)} unique roles "
+        f"({', '.join(unique_roles) if unique_roles else 'none'}), and {empty_name_count} empty name fields."
+    )
+
 
 if __name__ == "__main__":
-    clean_responses()
+    cleaned_rows = clean_responses()
+    print(summarize_data(cleaned_rows))
