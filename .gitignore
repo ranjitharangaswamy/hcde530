@@ -1,0 +1,9 @@
+# Secrets — never commit API keys (HCDE 530 / general pattern)
+.env
+**/.env
+.env.local
+*.pem
+
+__pycache__/
+*.pyc
+.Python
