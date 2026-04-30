@@ -7,8 +7,8 @@ Uses the official CourtListener Python client (wraps REST v4):
 
 Citation lookup docs: https://www.courtlistener.com/help/api/rest/citation-lookup/
 
-Install once (from repo root, in a venv):
-  pip install -r "week 4/requirements.txt"
+Install once into your global interpreter (same env as your Jupyter kernel):
+  python3 -m pip install -r "week 4/requirements.txt"
 """
 
 from __future__ import annotations
@@ -24,8 +24,8 @@ try:
 except ModuleNotFoundError:
     print(
         "Missing package `courtlistener-api-client`.\n"
-        '  python3 -m venv .venv && source .venv/bin/activate\n'
-        '  pip install -r "week 4/requirements.txt"',
+        '  python3 -m pip install -r "week 4/requirements.txt"\n'
+        "Use the same Python as your Jupyter kernel (global interpreter).",
         file=sys.stderr,
     )
     raise SystemExit(1) from None
@@ -37,7 +37,10 @@ TOKEN_ENV = "COURTLISTENER_API_TOKEN"
 
 
 def load_dotenv_file(path: Path) -> None:
-    """Merge KEY=value lines from `.env` into os.environ (no extra pip deps)."""
+    """Merge KEY=value lines from `.env` into os.environ (no extra pip deps).
+
+    Accepts ``KEY=value``, ``export KEY=value``, and quoted values.
+    """
     if not path.is_file():
         return
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -48,6 +51,8 @@ def load_dotenv_file(path: Path) -> None:
             continue
         key, _, val = line.partition("=")
         key = key.strip()
+        if key.lower().startswith("export "):
+            key = key[7:].strip()
         val = val.strip().strip('"').strip("'")
         if key and key not in os.environ:
             os.environ[key] = val
@@ -65,6 +70,7 @@ def run_citation_demo(client: CourtListener) -> None:
     # SDK sends the same form-encoded POST as the REST docs; returns list[dict].
     results = client.citation_lookup.lookup_text(sample_text)
 
+    rows: list[dict[str, object]] = []
     for idx, item in enumerate(results, start=1):
         citation = item.get("citation", "")
         normalized = item.get("normalized_citations") or []
@@ -89,10 +95,27 @@ def run_citation_demo(client: CourtListener) -> None:
         print(f"  cluster count:         {len(clusters)}")
         print()
 
+        rows.append(
+            {
+                "citation": citation,
+                "http_status": status,
+                "case_name": first_case or None,
+            }
+        )
+
     out_path = HERE / "week4_citation_lookup_sample.json"
     with out_path.open("w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
     print(f"Saved raw API response list to {out_path.name}")
+
+    summary_path = HERE / "week4_citation_extracted.tsv"
+    with summary_path.open("w", encoding="utf-8", newline="") as f:
+        f.write("citation\thttp_status\tcase_name\n")
+        for row in rows:
+            cn = row["case_name"] if row["case_name"] is not None else ""
+            f.write(f"{row['citation']}\t{row['http_status']}\t{cn}\n")
+    print(f"Saved three-field extract (TSV) to {summary_path.name}")
+    print("\nExtracted fields (3+): citation, http_status, case_name")
 
 
 def run_rest_examples(client: CourtListener) -> None:
