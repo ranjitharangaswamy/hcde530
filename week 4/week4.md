@@ -1,62 +1,54 @@
-# Week 4 — Competency: Working with a live web API
+# Week 4 — APIs and Data Acquisition
 
 ```
 #What I did this week
+1. This week I wrote a Python script that authenticates against a live web API, makes a real HTTP request, and parses the structured JSON response into something readable. 
+2. I deliberately did not use the class demo API (hcde530-week4-api.onrender.com) for the assignment. I used CourtListener via its official Python client (courtlistener-api-client), which wraps the v4 REST endpoints. (I had to google the types of APIs available on their site and use github instructions to find my key, which was ironic!)
+3. The default script calls citation lookup (client.citation_lookup.lookup_text(...)). An optional --examples flag runs the opinions and dockets patterns, including paginated results.
 
-This week’s deliverable is a small Python script that talks to a real API over HTTPS, pulls structured JSON back, and extracts several fields into something a human can read. I deliberately did **not** reuse the class week-4 demo API (`hcde530-week4-api.onrender.com`) for the assignment piece — instead I used **CourtListener’s Citation Lookup and Verification API** ([docs](https://www.courtlistener.com/help/api/rest/citation-lookup/)): POST a blob of text (or volume/reporter/page), get back parsed citations plus match status and opinion clusters.
+#What does this API do? (for non-legal folks)
+CourtListener's citation lookup is explicitly designed as a guardrail against hallucinated legal citations. It checks whether a cited case actually exists and resolves to a real opinion. That is the same category of problem as verifying a source before acting on it, which is a judgment I apply every time I read a contract or a brief.
 
-That choice is deliberate for my lane (law → HCDE): the response is explicitly designed as a **guardrail against hallucinated citations**, which is the same family of problem as “don’t trust summarized legal text without a pointer to authority.”
+###Did these tasks using Cursor and Python
+1. Built week4_public_api.py to authenticate with a token stored in .env, call the CourtListener citation lookup endpoint, parse the JSON list response, and print a labeled summary to console.
+2. Saved full JSON output to week4_citation_lookup_sample.json as an audit trail alongside the printed summary.
+3. Read the rate-limit docs before writing — per-minute caps, max citations per request, max text length.
+4. Added .env.example as a template so the required variable name is documented without any secret in the repo.
 
-I kept the same habits as A2/A3: plain-English `#` comments on what the URL does, what the POST body is, what the JSON list means, and why each extracted field matters. I also mirror my week-3 instinct: print a readable slice **and** save `week4_citation_lookup_sample.json` so outputs are inspectable later.
+```
+## Competencies 
+###C4 — APIs and data acquisition
+# Week 4 — Competency 4: Working with a live web API
 
 ```
 
-## Competencies
+#### The endpoint and what comes back
 
-### C — API request + response handling (Week 4 framing)
+The script calls POST /citation-lookup/ via client.citation_lookup.lookup_text(...). It takes a block of text, runs it through CourtListener's citation extractor, and returns a JSON list — one element per detected citation. Each element includes: citation (the raw string), normalized_citations (canonical form), status (per-citation code: 200, 404, 429 etc.), error_message, start_index / end_index (character offsets), and clusters (matched opinions with case_name).
 
-#### What the script is doing
+<p>The choice of API was deliberate for my background (law + HCDE): citation lookup is explicitly framed as a guardrail against hallucinated citations — checking whether a cited case actually exists and resolves to a real opinion. That's a problem I care about. I don't have to quote an authoritative citation that I haven't verified.
 
-`week4_public_api.py` sends **POST** `https://www.courtlistener.com/api/rest/v4/citation-lookup/` with `Content-Type: application/x-www-form-urlencoded` and form field `text=...`, per the [CourtListener citation-lookup docs](https://www.courtlistener.com/help/api/rest/citation-lookup/). Authentication is **`Authorization: Token <secret>`** (not Bearer). The token is read with **`os.environ.get("COURTLISTENER_API_TOKEN")`** after a tiny `.env` loader merges key/value lines into `os.environ` — no token is hardcoded, and `.env` stays out of git.
+####Personal observation:
+I extract all fields, not just the three-field minimum. A 200 HTTP response can still carry a 404 per-citation payload — the citation was detected but matched nothing. Surfacing both layers is the difference between knowing the API call ran and knowing the result is usable. I distrust output that only shows me the top level.
 
-The API returns a **JSON list** (empty if no cites found); each element describes one detected citation: string form, character span in the input, `status` (200/300/404/400/429 semantics documented on their page), `error_message`, and `clusters` (matched opinions).
+#### Output
 
-#### What I extract and why
-
-I print more than the assignment minimum of three fields: **`citation`**, **`normalized_citations`** (canonicalization / ambiguity), **`status`**, **`error_message`**, **`start_index` / `end_index`**, plus **`case_name`** from the first cluster when present and the cluster count. Citation + status answer “what string did Eyecite find and did it resolve?”; indices answer “where would I highlight in the original paragraph?”; cluster case name gives a human-readable anchor for the first match.
-
-#### personal observation
-
-I still want a **written artifact** next to the console: the saved JSON is my audit trail, same energy as week 3’s CSV exports. For legal-tech APIs I also care about **status codes inside the JSON** (not just HTTP 200) because a 200 envelope can still carry a 404 “citation not found” payload per citation — the script surfaces both layers.
-
-### Keys and `.env`
-
-CourtListener **requires** a token. Pattern from the course brief: store `COURTLISTENER_API_TOKEN` in **`week 4/.env`**, never paste it into source, never commit it. Copy **`week 4/.env.example`** → `.env` and fill in the value. Repo `.gitignore` already ignores `.env`.
+I print a labeled console summary (citation, status, case_name from first cluster) and save the full JSON to week4_citation_lookup_sample.json. The summary answers "did this cite resolve and to what?" The saved JSON is the drill-down record when clusters are large. 
+```
 
 ## Connection to design / research practice
 
-1. **Guardrails for AI + research:** The docs frame citation lookup as helping prevent **hallucinated citations** — that is directly parallel to UX around “confidence + provenance” for any system that quotes authorities.
-2. **Human-readable vs machine-complete:** I print a labeled summary but still save full JSON because `clusters` can be large; researchers often need both “at a glance” and “drill down.”
-3. **Throttles and limits:** The same doc page notes per-minute caps, max citations per request, and max text length — any integration that ignores that will fail in the field the same way ignoring survey mess fails cleaning.
+1. Citation lookup is a provenance checker. Any system that quotes authority — a research summary, compliance checklist, AI-generated brief — needs something that answers "does this source actually exist?" I've seen this fail in practice when summarized legal text gets passed around without a pointer back to the original.
+2. I print a quick summary but keep the full JSON because researchers need both orientations: the at-a-glance read and the ability to go deeper. Designing for one without the other is a gap.
+3. I read the rate-limit documentation before writing. Caps and length limits exist for a reason. Ignoring them fails the same way ignoring messy data fails — silently, and too late to fix cleanly. I had to read quite a bit on the CourtListener website to understand the free tier usage.
+
+```
 
 ## One thing I want to get better at next
 
-1. **CLI for arbitrary text:** Right now the sample string is fixed in `main()`; wiring `argparse` (or stdin) would make this a reusable desk tool for memos or participant quotes that mention cites.
-2. **Volume/reporter/page mode:** The API also accepts `volume`, `reporter`, `page` form fields; a second code path would cover paste-from-shepard’s workflows without free-text parsing.
+1. The citation text is hardcoded in main() right now. How do I build a version where I paste any paragraph from a memo or research note and get verification back immediately? That's the version I'd actually use.
+2. The API also accepts volume, reporter, and page as discrete fields instead of free text. A second input path would cover cases where you already have a structured cite and just need to confirm it resolves. That's closer to how legal professionals actually encounter citations.
 
-## Notes / quotes / links
+—
 
-- Citation Lookup API: https://www.courtlistener.com/help/api/rest/citation-lookup/
-- Assignment script: `week 4/week4_public_api.py`
-- Env template: `week 4/.env.example` → copy to `week 4/.env`
-- Saved output (after a successful run): `week 4/week4_citation_lookup_sample.json`
-- Class demo API (separate exercise): `week 4/API.py` → `https://hcde530-week4-api.onrender.com`
 
-## Appendix — Week 4 artifacts
-
-| Artifact | Role |
-|----------|------|
-| `week4_public_api.py` | POST citation-lookup, token from env, extract multiple fields, print + save JSON. |
-| `.env.example` | Documents required env var name; no secrets. |
-| `week4_citation_lookup_sample.json` | Written on successful run; holds API list for verification. |
-| `API.py` | Earlier class work against the course Render API (reviews CSV). |
