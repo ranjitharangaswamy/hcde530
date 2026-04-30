@@ -1,0 +1,3 @@
+# Week 4 — CourtListener REST API (official Python client)
+# Install: python3 -m venv .venv && source .venv/bin/activate && pip install -r "week 4/requirements.txt"
+courtlistener-api-client>=0.0.6

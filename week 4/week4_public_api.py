@@ -2,36 +2,42 @@
 """
 HCDE 530 — Week 4 assignment: call a real public API (not the class demo API).
 
-CourtListener Citation Lookup & Verification API (POST, token auth).
-Docs: https://www.courtlistener.com/help/api/rest/citation-lookup/
+Uses the official CourtListener Python client (wraps REST v4):
+  https://pypi.org/project/courtlistener-api-client/
+
+Citation lookup docs: https://www.courtlistener.com/help/api/rest/citation-lookup/
+
+Install once (from repo root, in a venv):
+  pip install -r "week 4/requirements.txt"
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
-import urllib.error
-import urllib.parse
-import urllib.request
+import sys
 from pathlib import Path
+
+try:
+    from courtlistener import CourtListener  # type: ignore[import-untyped]
+except ModuleNotFoundError:
+    print(
+        "Missing package `courtlistener-api-client`.\n"
+        '  python3 -m venv .venv && source .venv/bin/activate\n'
+        '  pip install -r "week 4/requirements.txt"',
+        file=sys.stderr,
+    )
+    raise SystemExit(1) from None
 
 HERE = Path(__file__).resolve().parent
 
-# Endpoint from CourtListener docs — parses citations (Eyecite) and matches DB clusters.
-CITATION_LOOKUP_URL = "https://www.courtlistener.com/api/rest/v4/citation-lookup/"
-
-# Env var name for the API token (create account on CourtListener → API token).
-# Put `COURTLISTENER_API_TOKEN=...` in `week 4/.env` — never commit that file.
+# Env var for the API token (CourtListener account → API). Put in `week 4/.env`.
 TOKEN_ENV = "COURTLISTENER_API_TOKEN"
 
 
 def load_dotenv_file(path: Path) -> None:
-    """
-    Minimal `.env` loader (no pip dependency). Lines like KEY=value become os.environ.
-
-    Matches the course pattern: secrets live beside the script, loaded before
-    os.environ.get(...) reads them.
-    """
+    """Merge KEY=value lines from `.env` into os.environ (no extra pip deps)."""
     if not path.is_file():
         return
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -47,68 +53,26 @@ def load_dotenv_file(path: Path) -> None:
             os.environ[key] = val
 
 
-def citation_lookup(text: str, token: str) -> list[dict]:
-    """
-    POST form field `text=` — the API scans the blob, returns a JSON list (one dict per hit).
-
-    Each dict includes citation string, indices in the input, HTTP-style status,
-    error_message, and `clusters` (matched opinions). See field definitions in the docs.
-    """
-    body = urllib.parse.urlencode({"text": text}).encode("utf-8")
-    req = urllib.request.Request(
-        CITATION_LOOKUP_URL,
-        data=body,
-        method="POST",
-        headers={
-            "Accept": "application/json",
-            "Content-Type": "application/x-www-form-urlencoded",
-            # CourtListener uses "Authorization: Token <secret>" (not Bearer).
-            "Authorization": f"Token {token}",
-        },
-    )
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        raw = resp.read().decode("utf-8")
-    parsed = json.loads(raw)
-    # Empty input with no citations returns [] per docs; otherwise list of citation objects.
-    return parsed if isinstance(parsed, list) else []
-
-
-def main() -> None:
-    # Load `week 4/.env` into the process environment, then read the token safely.
-    load_dotenv_file(HERE / ".env")
-    token = os.environ.get(TOKEN_ENV)
-    if not token:
-        print(
-            f"Missing {TOKEN_ENV}. Create a file named `.env` in this folder with:\n"
-            f"  {TOKEN_ENV}=your_courtlistener_token\n"
-            "Get a token from CourtListener (account → API). Do not commit `.env`."
-        )
-        raise SystemExit(1)
-
-    # Example from the public docs — well-known cite + short sentence for readable output.
+def run_citation_demo(client: CourtListener) -> None:
+    """POST citation-lookup via SDK (`client.citation_lookup.lookup_text`)."""
     sample_text = (
         "Obergefell v. Hodges (576 U.S. 644) established the right to marriage "
         "among same-sex couples."
     )
-    print("POST citation-lookup with sample text:\n")
+    print("Citation lookup — sample text:\n")
     print(f"  {sample_text}\n")
 
-    results = citation_lookup(sample_text, token)
+    # SDK sends the same form-encoded POST as the REST docs; returns list[dict].
+    results = client.citation_lookup.lookup_text(sample_text)
 
     for idx, item in enumerate(results, start=1):
-        # Extract several top-level fields the API documents explicitly.
         citation = item.get("citation", "")
-        # normalized_citations catches typos / non-canonical reporters (e.g. "US" → "U.S.").
         normalized = item.get("normalized_citations") or []
-        # status mirrors HTTP semantics: 200 OK, 404 not in DB, 300 ambiguous, etc.
         status = item.get("status")
-        # error_message explains failures when status is not 200.
         err = item.get("error_message", "")
-        # Character span in the submitted `text` — useful for highlighting in a UI.
         start_i = item.get("start_index")
         end_i = item.get("end_index")
 
-        # Pull at least one nested field from clusters (first match) when present.
         clusters = item.get("clusters") or []
         first_case = ""
         if clusters and isinstance(clusters[0], dict):
@@ -131,11 +95,93 @@ def main() -> None:
     print(f"Saved raw API response list to {out_path.name}")
 
 
+def run_rest_examples(client: CourtListener) -> None:
+    """
+    Patterns from the CourtListener client README: opinions + dockets.
+
+    Dockets show two pagination styles:
+    - Iterate the ResourceIterator: walks every page until exhaustion.
+    - Manual: ``results.results``, ``results.has_next()``, ``results.next()``.
+    """
+    # Get a specific opinion by ID (REST: GET /opinions/{id}/).
+    opinion = client.opinions.get(1)
+    print("--- opinions.get(1) ---")
+    print(f"  keys: {sorted(opinion.keys())[:12]} ... ({len(opinion)} fields total)")
+    for key in ("id", "absolute_url", "cluster"):
+        if key in opinion:
+            print(f"  {key}: {opinion[key]!r}")
+
+    # Search opinions (filters are passed as keyword args to .list()).
+    response = client.opinions.list(cluster__case_name="Miranda")
+    print("\n--- opinions.list(cluster__case_name='Miranda') ---")
+    print(f"  count (total matches): {response.count}")
+    print("  first page results (up to 3):")
+    for i, op in enumerate(response.results):
+        if i >= 3:
+            break
+        print(f"    [{i}] opinion id={op.get('id')} cluster={op.get('cluster')}")
+
+    # Dockets (SCOTUS): ResourceIterator yields every row across all pages.
+    results = client.dockets.list(court="scotus")
+    print("\n--- dockets.list(court='scotus') — iterate all pages ---")
+    print("  (Cap at 5 rows here; delete the `if n >= 5` break to print everything.)")
+    for n, docket in enumerate(results):
+        if n >= 5:
+            break
+        sid = docket.get("id")
+        name = docket.get("case_name_short") or docket.get("case_name")
+        print(f"  [{n}] id={sid}  {name!r}")
+
+    # Same query fresh: navigate pages manually instead of the for-loop.
+    print("\n--- dockets.list(court='scotus') — manual page navigation ---")
+    page = client.dockets.list(court="scotus")
+    # Current page rows (list of dicts).
+    print(f"  results.results (page 1): {len(page.results)} dockets")
+    if page.results:
+        d0 = page.results[0]
+        print(f"  first row sample: id={d0.get('id')} case_name_short={d0.get('case_name_short')!r}")
+
+    if page.has_next():
+        page.next()
+        print(f"  after page.next(): {len(page.results)} dockets on page 2")
+        if page.results:
+            d0 = page.results[0]
+            print(f"  first row on page 2: id={d0.get('id')}")
+    else:
+        print("  page.has_next() is False — no second page for this filter.")
+
+
+def main() -> None:
+    load_dotenv_file(HERE / ".env")
+    token = os.environ.get(TOKEN_ENV)
+    if not token:
+        print(
+            f"Missing {TOKEN_ENV}. Add to `week 4/.env`:\n"
+            f"  {TOKEN_ENV}=your_courtlistener_token\n"
+            "Do not commit `.env`."
+        )
+        raise SystemExit(1)
+
+    parser = argparse.ArgumentParser(description="CourtListener API — Week 4")
+    parser.add_argument(
+        "--examples",
+        action="store_true",
+        help="Run opinions/docket demo (README-style), not citation lookup.",
+    )
+    args = parser.parse_args()
+
+    # Context manager closes the underlying httpx client when done.
+    with CourtListener(api_token=token) as client:
+        if args.examples:
+            run_rest_examples(client)
+        else:
+            run_citation_demo(client)
+
+
 if __name__ == "__main__":
     try:
         main()
-    except urllib.error.HTTPError as e:
-        detail = e.read().decode("utf-8", errors="replace")
-        print(f"HTTP {e.code} {e.reason}\n{detail}")
-    except urllib.error.URLError as e:
-        print(f"Request failed: {e}")
+    except Exception as e:
+        # httpx errors from the SDK surface here; keep message readable.
+        print(f"Request or API error: {e}", file=sys.stderr)
+        raise SystemExit(1) from e
