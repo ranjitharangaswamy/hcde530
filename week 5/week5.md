@@ -48,6 +48,22 @@ I am carrying forward Week 3’s instinct to **not trust aggregates until I know
 
 Console and notebook outputs from the demos — shapes, heads, merged preview, and grouped summaries form an audit trail. They are quick to re-run after changing a filter or a file version.
 
+###C4 — APIs and data acquisition
+
+Week 5’s CourtListener work sits **downstream of acquisition**: the rows in `df_mp1` are not a hand-made CSV — they are **stacked search / export results** from CourtListener (the same API family I used in Week 4 with the official client and token). That means the pandas “first look” is always a second step: the table inherits whatever the search returned (slice, court, date window) and whatever fields the API exposes (`caseName`, `cite_count`, `judge`, etc.).
+
+**Evidence in this repo:** **`week5_courtlistener_cases.ipynb`** — I load multiple result sets, stack them, and keep a `dataset` (or similar) label so I can still tell which search each row came from after they sit in one DataFrame. That is acquisition literacy in practice: I need to know **provenance** (which query produced this row) before I compare means across groups.
+
+**What carries over from Week 4:** authentication and rate-limit awareness are not visible inside every notebook cell, but they still matter — if I change how I pull or how often I pull, the stacked file changes and every downstream `groupby` changes with it.
+
+#### Personal observation:
+
+I used to think of “API week” and “pandas week” as separate skills. Week 5 makes the link explicit: **bad or vague acquisition** (overlapping searches, mixed jurisdictions, no row-level label for source) makes even correct pandas code tell a fuzzy story. Labeling slices when I stack is the same discipline as naming variables in a survey export.
+
+#### Output:
+
+Stacked table in `df_mp1`, plus saved or printed intermediate exports where I kept a copy of what I pulled — so the notebook is reproducible as “acquire → stack → first look,” not only “read_csv and pray.”
+
 ###C5 — Data analysis with pandas
 
 **What it means:** Using pandas to answer a concrete question about a dataset and not just loading it. That includes filtering rows, grouping, aggregating, and noticing missing values. It also means picking the pandas step that matches the question and saying what the numbers mean in plain language, not only pasting output.
