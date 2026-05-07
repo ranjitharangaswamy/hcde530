@@ -1,0 +1,13 @@
+dataset,case,judge,date_of_decision,cite_count
+miranda_query,Miranda v. Arizona,"Warren, Clark, Stewart",1966-06-13,46
+miranda_query,Miranda v. Arizona,,1965-11-22,3
+miranda_query,Miranda v. Arizona,Consideration Took,1969-10-13,46
+seattle_federal,Doe v. Acme Corp,Judge A Martinez,2018-04-12,5
+seattle_federal,State v. Lee,Judge B Chen,2020-01-15,0
+seattle_federal,In re Widget Co,,2015-03-01,12
+king_county_app,Smith v. Jones,,2019-06-01,8
+king_county_app,County v. Parcel LLC,Judge C Kim,2021-11-30,15
+king_county_app,Taylor v. Metro,,1998-05-22,4
+miranda_query,Miranda v. Arizona (mem.),,1967-01-01,1
+seattle_federal,Foo v. Bar,Judge A Martinez,1995-09-09,22
+king_county_app,White v. Board,,1988-12-01,2
