@@ -7,7 +7,8 @@ Data: week 6/Week6_files/courtlistener_week5_repull_40k.csv (~39k rows; cite met
 Run interactively:
   week 6/.venv/bin/python "week 6/courtlistener_mp1a_dash.py"
 
-Export static JPGs (same figures, ~45-point aggregates where noted):
+Export static JPGs (same figures, ~45-point aggregates where noted). **Note:** JPGs are
+      snapshots — chart (b) is a **3D** view in the live Dash app; the export is a frozen angle.
   week 6/.venv/bin/python "week 6/courtlistener_mp1a_dash.py" --export
 """
 
@@ -76,23 +77,6 @@ def agg_judge_federal(df: pd.DataFrame, top_n: int = 10) -> pd.DataFrame:
     return g
 
 
-def top_cases_by_jurisdiction(df: pd.DataFrame, court_id: str = "wawd", top_n: int = 45) -> pd.DataFrame:
-    """Most cited *titles* in one jurisdiction (max cite_count per case title after dedupe)."""
-    d = df[df["court_id"] == court_id].copy()
-    # collapse duplicate rows sharing a case title — keep max cite_count observed
-    g = d.groupby(["case", "court", "court_id"], as_index=False).agg(max_cite_count=("cite_count", "max"))
-    g = g.sort_values("max_cite_count", ascending=False).head(top_n)
-    return g
-
-
-def top_cases_by_jurisdiction_mean(df: pd.DataFrame, court_id: str, top_n: int) -> pd.DataFrame:
-    """Alternative ranking: mean cite_count per case title (still deduped by title)."""
-    d = df[df["court_id"] == court_id].copy()
-    g = d.groupby(["case", "court", "court_id"], as_index=False).agg(mean_cite_count=("cite_count", "mean"))
-    g = g.sort_values("mean_cite_count", ascending=False).head(top_n)
-    return g.rename(columns={"mean_cite_count": "rank_metric"})
-
-
 def fig_q1_scatter3d_monthly(df: pd.DataFrame) -> go.Figure:
     """
     (a) Citation intensity by court level over time — 3D scatter (~48 monthly buckets × courts).
@@ -129,7 +113,39 @@ def fig_q1_scatter3d_monthly(df: pd.DataFrame) -> go.Figure:
     return fig
 
 
-def fig_q2_bar_top_cases(
+def _q2_case_frame(
+    df: pd.DataFrame, *, court_id: str, top_n: int, rank_mode: str
+) -> tuple[pd.DataFrame, str, int, str, str]:
+    """Build one tidy frame for Q(b) 3D: rank, cite metric, opinion row count per title."""
+    top_n = int(max(5, min(60, top_n)))
+    d = df[df["court_id"] == court_id].copy()
+    rows_in_court = len(d)
+    court_map = df.drop_duplicates("court_id").set_index("court_id")["court"]
+    court_label = str(court_map[court_id]) if court_id in court_map.index else str(court_id)
+    if rows_in_court == 0:
+        return pd.DataFrame(), court_label, 0, "", ""
+    if rank_mode == "mean":
+        g = (
+            d.groupby(["case", "court", "court_id"], as_index=False)
+            .agg(cite_value=("cite_count", "mean"), opinion_rows=("cite_count", "count"))
+            .sort_values("cite_value", ascending=False)
+            .head(top_n)
+        )
+        metric_label = "Mean cite_count (per row, per title)"
+    else:
+        g = (
+            d.groupby(["case", "court", "court_id"], as_index=False)
+            .agg(cite_value=("cite_count", "max"), opinion_rows=("cite_count", "count"))
+            .sort_values("cite_value", ascending=False)
+            .head(top_n)
+        )
+        metric_label = "Max cite_count (per title in pull)"
+    g = g.reset_index(drop=True)
+    g["rank_1based"] = (g.index + 1).astype(int)
+    return g, court_label, rows_in_court, metric_label, rank_mode
+
+
+def fig_q2_scatter3d_jurisdiction(
     df: pd.DataFrame,
     *,
     court_id: str = "wawd",
@@ -137,27 +153,15 @@ def fig_q2_bar_top_cases(
     rank_mode: str = "max",
 ) -> go.Figure:
     """
-    (b) Most cited judgments in a chosen jurisdiction — horizontal bar, top_n titles.
-    rank_mode: 'max' = max cite per title; 'mean' = mean cite per title after dedupe.
+    (b) Most cited judgments in a jurisdiction — 3D scatter (interactive rotate/zoom in browser).
+    Axes: rank (1 = strongest in slice) × cite metric × how many duplicate rows exist for that title.
     """
-    top_n = int(max(5, min(60, top_n)))
-    if rank_mode == "mean":
-        g = top_cases_by_jurisdiction_mean(df, court_id=court_id, top_n=top_n)
-        x_col = "rank_metric"
-        color_col = "rank_metric"
-        x_label = "Mean cite_count per row (per case title)"
-        cbar = "Mean cite_count"
-    else:
-        g = top_cases_by_jurisdiction(df, court_id=court_id, top_n=top_n)
-        x_col = "max_cite_count"
-        color_col = "max_cite_count"
-        x_label = "Max cite_count in pull (dimensionless count)"
-        cbar = "Max cite_count"
-    rows_in_court = len(df[df["court_id"] == court_id])
+    mode = rank_mode if rank_mode in ("mean", "max") else "max"
+    g, court_label, rows_in_court, metric_label, _ = _q2_case_frame(df, court_id=court_id, top_n=top_n, rank_mode=mode)
     if len(g) == 0:
         fig = go.Figure()
         fig.add_annotation(
-            text="No case titles in this court slice (unexpected for this CSV).",
+            text="No case titles in this court slice.",
             xref="paper",
             yref="paper",
             x=0.5,
@@ -166,30 +170,41 @@ def fig_q2_bar_top_cases(
         )
         fig.update_layout(title="Question (b) — no rows to plot")
         return fig
-    court_map = df.drop_duplicates("court_id").set_index("court_id")["court"]
-    court_label = str(court_map[court_id]) if court_id in court_map.index else str(court_id)
-    fig = px.bar(
-        g.iloc[::-1],
-        x=x_col,
-        y="case",
-        orientation="h",
-        color=color_col,
+    fig = px.scatter_3d(
+        g,
+        x="rank_1based",
+        y="cite_value",
+        z="opinion_rows",
+        color="cite_value",
+        size="opinion_rows",
+        size_max=55,
+        hover_name="case",
+        hover_data={
+            "case": False,
+            "cite_value": ":.3f",
+            "opinion_rows": True,
+            "rank_1based": True,
+            "court_id": True,
+        },
         color_continuous_scale="Viridis",
         title=(
-            f"Most cited case titles — {court_label} — rank by {rank_mode} cite_count per title "
-            f"(top {len(g)} of {rows_in_court:,} rows in slice; {len(df):,} rows in full CSV)"
+            f"3D — most cited case titles — {court_label} — by {mode} cite (top {len(g)} titles; "
+            f"{rows_in_court:,} rows in slice; {len(df):,} in CSV)"
         ),
-        labels={x_col: x_label, "case": "Case title"},
     )
     fig.update_layout(
-        coloraxis_showscale=True,
-        coloraxis_colorbar_title=cbar,
-        yaxis=dict(tickfont=dict(size=9)),
-        margin=dict(l=10, r=10, t=70, b=40),
-        dragmode="select",
-        clickmode="event+select",
+        scene=dict(
+            xaxis_title="Rank in slice (1 = highest metric)",
+            yaxis_title=metric_label,
+            zaxis_title="Opinion rows for this title (duplicate rows in pull)",
+            bgcolor="rgb(248,249,252)",
+            xaxis=dict(backgroundcolor="rgb(248,249,252)"),
+            yaxis=dict(backgroundcolor="rgb(248,249,252)"),
+            zaxis=dict(backgroundcolor="rgb(248,249,252)"),
+        ),
+        margin=dict(l=0, r=0, t=70, b=0),
+        coloraxis_colorbar_title="Cite metric",
     )
-    fig.update_traces(selected_marker_opacity=0.85, unselected_marker_opacity=0.35)
     return fig
 
 
@@ -268,6 +283,14 @@ def _slider_marks(min_v: int, max_v: int, step: int) -> list[dict]:
     return [{"value": v, "label": str(v)} for v in range(min_v, max_v + 1, step)]
 
 
+def _q2_default_badges() -> list:
+    return [
+        dmc.Badge("court=wawd", variant="light", color="violet"),
+        dmc.Badge("rank=max", variant="light", color="gray"),
+        dmc.Badge("top_n=45", variant="outline", color="violet"),
+    ]
+
+
 def build_layout(df: pd.DataFrame, fig1: go.Figure) -> dmc.MantineProvider:
     intro = dmc.Stack(
         [
@@ -314,80 +337,165 @@ def build_layout(df: pd.DataFrame, fig1: go.Figure) -> dmc.MantineProvider:
                         shadow="sm",
                     ),
                     dmc.Card(
-                        [
+                        withBorder=True,
+                        shadow="md",
+                        radius="md",
+                        children=[
                             dmc.CardSection(
-                                dmc.Title("Question (b) — jurisdiction spotlight", order=4),
+                                dmc.Group(
+                                    [
+                                        dmc.RingProgress(
+                                            sections=[{"value": 100, "color": "violet"}],
+                                            size=52,
+                                            thickness=6,
+                                            label=dmc.Center(
+                                                dmc.Text("b", size="xs", fw=800, c="violet"),
+                                                style={"height": "100%"},
+                                            ),
+                                        ),
+                                        dmc.Stack(
+                                            [
+                                                dmc.Group(
+                                                    [
+                                                        dmc.Title(
+                                                            "Question (b) — jurisdiction spotlight",
+                                                            order=4,
+                                                            mb=0,
+                                                        ),
+                                                        dmc.Badge("3D", variant="filled", color="violet"),
+                                                        dmc.Badge(
+                                                            "Mantine + Plotly",
+                                                            variant="light",
+                                                            color="gray",
+                                                        ),
+                                                    ],
+                                                    gap="xs",
+                                                    align="flex-end",
+                                                ),
+                                                dmc.Text(
+                                                    "Rotate and zoom the scene; use the controls to "
+                                                    "change court, ranking mode, and how many titles load.",
+                                                    size="sm",
+                                                    c="dimmed",
+                                                ),
+                                            ],
+                                            gap=4,
+                                            style={"flex": 1},
+                                        ),
+                                    ],
+                                    align="flex-start",
+                                    gap="md",
+                                    wrap="nowrap",
+                                ),
                                 inheritPadding=True,
-                                py="xs",
+                                py="md",
+                                withBorder=True,
                             ),
-                            dmc.Text(
-                                "Mantine controls below re-query pandas and rebuild the Plotly figure "
-                                "(box select / zoom still work on the chart).",
-                                size="sm",
-                                c="dimmed",
-                                mb="xs",
-                            ),
-                            dmc.SimpleGrid(
-                                cols={"base": 1, "sm": 2},
-                                spacing="md",
-                                children=[
-                                    dmc.Stack(
-                                        [
-                                            dmc.Text("Jurisdiction", size="sm", fw=600),
-                                            dmc.Select(
-                                                id="q2-court",
-                                                data=_court_select_data(),
-                                                value="wawd",
-                                                searchable=True,
-                                                clearable=False,
-                                                w="100%",
-                                            ),
-                                        ],
-                                        gap=6,
-                                    ),
-                                    dmc.Stack(
-                                        [
-                                            dmc.Text("Rank case titles by", size="sm", fw=600),
-                                            dmc.SegmentedControl(
-                                                id="q2-rank-mode",
-                                                data=[
-                                                    {"value": "max", "label": "Max cite / title"},
-                                                    {"value": "mean", "label": "Mean cite / title"},
-                                                ],
-                                                value="max",
-                                                fullWidth=True,
-                                            ),
-                                        ],
-                                        gap=6,
-                                    ),
-                                ],
-                            ),
-                            dmc.Stack(
+                            dmc.CardSection(
                                 [
-                                    dmc.Text("How many titles to show", size="sm", fw=600),
-                                    dmc.Slider(
-                                        id="q2-top-n",
-                                        min=10,
-                                        max=50,
-                                        step=5,
-                                        value=45,
-                                        marks=_slider_marks(10, 50, 10),
-                                        mb="xs",
+                                    dmc.Alert(
+                                        "Tip: drag the plot background to orbit. Scroll to zoom. "
+                                        "Each point is one case title; size shows how many CSV rows share that title.",
+                                        title="Reading this 3D view",
+                                        color="blue",
+                                        variant="light",
+                                        mb="sm",
                                     ),
-                                    dmc.Text(id="q2-summary", size="sm", c="dimmed"),
+                                    dmc.Paper(
+                                        p="md",
+                                        radius="sm",
+                                        withBorder=True,
+                                        bg="var(--mantine-color-gray-0)",
+                                        children=[
+                                            dmc.Group(
+                                                [
+                                                    dmc.Text("Active filters", size="xs", tt="uppercase", fw=700, c="dimmed"),
+                                                    dmc.Group(id="q2-filter-badges", gap="xs", children=_q2_default_badges()),
+                                                ],
+                                                justify="space-between",
+                                                align="center",
+                                                wrap="wrap",
+                                                mb="sm",
+                                            ),
+                                            dmc.SimpleGrid(
+                                                cols={"base": 1, "sm": 2},
+                                                spacing="md",
+                                                children=[
+                                                    dmc.Stack(
+                                                        [
+                                                            dmc.Text("Jurisdiction", size="sm", fw=600),
+                                                            dmc.Tooltip(
+                                                                label="Switches pandas slice by court_id before the 3D aggregation.",
+                                                                position="top",
+                                                                withArrow=True,
+                                                                children=dmc.Select(
+                                                                    id="q2-court",
+                                                                    data=_court_select_data(),
+                                                                    value="wawd",
+                                                                    searchable=True,
+                                                                    clearable=False,
+                                                                    w="100%",
+                                                                ),
+                                                            ),
+                                                        ],
+                                                        gap=6,
+                                                    ),
+                                                    dmc.Stack(
+                                                        [
+                                                            dmc.Text("Rank case titles by", size="sm", fw=600),
+                                                            dmc.Tooltip(
+                                                                label="Max = strongest single-row cite_count for that title. "
+                                                                "Mean = average cite_count across rows with that title.",
+                                                                position="top",
+                                                                withArrow=True,
+                                                                children=dmc.SegmentedControl(
+                                                                    id="q2-rank-mode",
+                                                                    data=[
+                                                                        {"value": "max", "label": "Max cite / title"},
+                                                                        {"value": "mean", "label": "Mean cite / title"},
+                                                                    ],
+                                                                    value="max",
+                                                                    fullWidth=True,
+                                                                    color="violet",
+                                                                ),
+                                                            ),
+                                                        ],
+                                                        gap=6,
+                                                    ),
+                                                ],
+                                            ),
+                                            dmc.Stack(
+                                                [
+                                                    dmc.Text("How many titles to show", size="sm", fw=600),
+                                                    dmc.Slider(
+                                                        id="q2-top-n",
+                                                        min=10,
+                                                        max=50,
+                                                        step=5,
+                                                        value=45,
+                                                        marks=_slider_marks(10, 50, 10),
+                                                        color="violet",
+                                                    ),
+                                                    dmc.Text(id="q2-summary", size="sm", c="dimmed"),
+                                                ],
+                                                gap=6,
+                                                mt="sm",
+                                            ),
+                                        ],
+                                    ),
+                                    dcc.Graph(
+                                        id="fig-q2-3d",
+                                        figure=fig_q2_scatter3d_jurisdiction(
+                                            df, court_id="wawd", top_n=45, rank_mode="max"
+                                        ),
+                                        style={"height": "700px"},
+                                        config=_GRAPH_CONFIG,
+                                    ),
                                 ],
-                                gap=6,
-                                mt="sm",
-                            ),
-                            dcc.Graph(
-                                id="fig-bar",
-                                figure=fig_q2_bar_top_cases(df, court_id="wawd", top_n=45, rank_mode="max"),
-                                style={"height": "720px"},
-                                config=_GRAPH_CONFIG,
+                                inheritPadding=True,
+                                py="md",
                             ),
                         ],
-                        withBorder=True,
-                        shadow="sm",
                     ),
                 ],
             ),
@@ -507,23 +615,31 @@ def register_callbacks(app: Dash, df: pd.DataFrame) -> None:
     """Wire Mantine inputs to Plotly figures for charts 2 and 3."""
 
     @callback(
-        Output("fig-bar", "figure"),
+        Output("fig-q2-3d", "figure"),
         Output("q2-summary", "children"),
+        Output("q2-filter-badges", "children"),
         Input("q2-court", "value"),
         Input("q2-rank-mode", "value"),
         Input("q2-top-n", "value"),
     )
-    def update_q2(court: str | None, rank_mode: str | None, top_n: float | int | None) -> tuple[go.Figure, str]:
+    def update_q2(
+        court: str | None, rank_mode: str | None, top_n: float | int | None
+    ) -> tuple[go.Figure, str, list]:
         court_id = court or "wawd"
         mode = rank_mode if rank_mode in ("mean", "max") else "max"
         n = int(top_n) if top_n is not None else 45
-        fig = fig_q2_bar_top_cases(df, court_id=court_id, top_n=n, rank_mode=mode)
+        fig = fig_q2_scatter3d_jurisdiction(df, court_id=court_id, top_n=n, rank_mode=mode)
         rows_slice = int((df["court_id"] == court_id).sum())
         summary = (
-            f"Mantine → pandas: court_id={court_id}, rank={mode}, top_n={n}. "
+            f"Mantine → pandas → Plotly 3D: court_id={court_id}, rank={mode}, top_n={n}. "
             f"Slice has {rows_slice:,} rows; full CSV has {len(df):,} rows."
         )
-        return fig, summary
+        badges = [
+            dmc.Badge(f"court={court_id}", variant="light", color="violet"),
+            dmc.Badge(f"rank={mode}", variant="light", color="gray"),
+            dmc.Badge(f"top_n={n}", variant="outline", color="violet"),
+        ]
+        return fig, summary, badges
 
     @callback(
         Output("fig-authorities", "figure"),
@@ -567,7 +683,7 @@ def main() -> None:
 
     df = load_df()
     fig1 = fig_q1_scatter3d_monthly(df)
-    fig2 = fig_q2_bar_top_cases(df, court_id="wawd", top_n=45, rank_mode="max")
+    fig2 = fig_q2_scatter3d_jurisdiction(df, court_id="wawd", top_n=45, rank_mode="max")
     fig3 = fig_q3_top_authorities(df, top_n=45, min_opinion_rows=1)
 
     if args.export:

@@ -10,7 +10,7 @@
 
 ###Did these tasks using Cursor and Python
 
-1. Built **`courtlistener_mp1a_dash.py`**: loads the CSV with **pandas**, builds three `plotly` figures (`scatter_3d`, horizontal `bar` ×2), composes them inside **`dmc.MantineProvider` → `Container` → `Stack` / `SimpleGrid` / `Card` / `Alert`**, and runs locally on `127.0.0.1:8050`.
+1. Built **`courtlistener_mp1a_dash.py`**: loads the CSV with **pandas**, builds Plotly figures (**`scatter_3d`** for questions **(a)** and **(b)**, horizontal **`bar`** for **(c)**), composes them inside **`dmc.MantineProvider` → `Container` → `Stack` / `SimpleGrid` / `Card` / `Alert` / `Paper` / `Tooltip` / `Badge` / `RingProgress`**, and runs locally on `127.0.0.1:8050`.
 2. Wrote **`--export`**: calls `fig.write_image(..., format="jpg")` for **`mp1a_chart1_court_level_cites_3d.jpg`**, **`mp1a_chart2_top_cited_cases_wd_wash.jpg`**, **`mp1a_chart3_top_authority_titles.jpg`** into the **`week 6/`** folder.
 3. Used **Cursor** to iterate on layout (for example: `dmc.Card` rejected a `span=` prop — I moved the full-width third chart into a vertical `Stack` under a `SimpleGrid` instead of guessing Mantine’s API).
 4. I wired **Dash callbacks** from **Mantine `Select` / `SegmentedControl` / `Slider`** inputs to **pandas → Plotly** for charts **(b)** and **(c)** so those views re-render from UI state (not only hover/zoom on a static figure).
@@ -22,7 +22,7 @@
 | Question | Committed JPG | Chart type | What it encodes (light slice) |
 |----------|---------------|------------|--------------------------------|
 | (a) Judges / citations **and** court **level** | `mp1a_chart1_court_level_cites_3d.jpg` | **3D scatter** | Month × court stratum × **mean `cite_count`**; size = opinion count in bucket (capped **48** points) |
-| (b) Most cited judgments in a **specific jurisdiction** | `mp1a_chart2_top_cited_cases_wd_wash.jpg` | **Horizontal bar** | **W.D. Wash.** only; **top 45** titles; **`max(cite_count)`** after collapsing duplicate rows per title |
+| (b) Most cited judgments in a **specific jurisdiction** | `mp1a_chart2_top_cited_cases_wd_wash.jpg` | **3D scatter** (live app) | Rank × cite metric (max/mean per title) × **row count** per title; Mantine **Select / SegmentedControl / Slider** + **Badges**; JPG is a static camera angle |
 | (c) **Average** cite clusters per opinion + dominant case titles | `mp1a_chart3_top_authority_titles.jpg` | **Horizontal bar** | **Top 45** titles by **`sum(cite_count)`**; color shows how many CSV rows each title has; title states **dataset mean** (~0.152) |
 
 **Honest null (still a finding):** every **`washctapp`** row in this pull has **`cite_count = 0`** and **`judge` is missing** on the state slice, so “court level” contrast is extreme and judge ranking only makes sense on the **federal** rows. I say that in the Dash **`Alert`** and in the competency section below instead of pretending the state chart carries citation signal.
@@ -39,7 +39,7 @@
 
 ####Personal observation:
 
-I still catch myself wanting to describe the app as “self-explanatory” because the charts look finished. The rubric is asking for **chart justifications**, which are really **arguments**: why horizontal bars for long case names, why 3D only after aggregation, why `max` vs `sum` differ between questions (b) vs (c). Writing those down in prose next to the committed JPGs keeps me honest about **what the chart cannot prove**.
+I still catch myself wanting to describe the app as “self-explanatory” because the charts look finished. The rubric is asking for **chart justifications**, which are really **arguments**: why chart **(b)** became a **3D scatter** (rank × cite metric × duplicate-row depth) after aggregation, why chart **(c)** stays a **horizontal bar** for long case names, why `max` vs `sum` differ between questions **(b)** vs **(c)**. Writing those down in prose next to the committed JPGs keeps me honest about **what the chart cannot prove** (and that a JPG cannot spin).
 
 ####Output:
 
@@ -59,7 +59,7 @@ Week 3 taught me to distrust aggregates until I know the rows. Week 6 adds: dist
 
 ####Output:
 
-Console-free evidence is the **figures themselves**: the Wash. Ct. App. stratum in chart 1 sits at **mean cite = 0** across months; chart 2 is explicitly **W.D. Wash.** because a “most cited in King County appellate” bar chart would be a blank story in **this** extract.
+Console-free evidence is the **figures themselves**: the Wash. Ct. App. stratum in chart 1 sits at **mean cite = 0** across months; chart **(b)** defaults to **W.D. Wash.** (`wawd`) because the state slice has no cite signal to rank in **this** extract (you can still switch the Mantine **Select** to `washctapp` and see the flat cloud).
 
 ###C4 — APIs and data acquisition
 
@@ -85,7 +85,7 @@ Upstream notebook evidence: **`week5_courtlistener_cases.ipynb`**. Week 6 consum
 
 | Requirement | Where / how |
 |-------------|-------------|
-| Loads data and answers specific analytical questions | **`courtlistener_mp1a_dash.py`**: `load_df()` reads the CSV; `agg_monthly_court_cites()` answers **(a)** over time by court; `top_cases_by_jurisdiction(..., court_id="wawd")` answers **(b)**; `fig_q3_top_authorities()` groups by **`case`** with **`sum` / `count`** for **(c)**. |
+| Loads data and answers specific analytical questions | **`courtlistener_mp1a_dash.py`**: `load_df()` reads the CSV; `agg_monthly_court_cites()` answers **(a)** over time by court; `_q2_case_frame()` / `fig_q2_scatter3d_jurisdiction()` answers **(b)** by court slice + rank + cite vs row depth; `fig_q3_top_authorities()` groups by **`case`** with **`sum` / `count`** for **(c)**. |
 | At least two pandas operations | **`groupby` + `agg`** on month/court; **`groupby` + `max`** on case titles within a court; **`groupby` + `sum`/`count`** on case titles dataset-wide; date parsing via **`to_datetime`**. |
 | Written interpretation (meaning, not only tables) | Chart **titles** carry the headline numbers (means, caps like “45 titles”, “48 buckets”); this markdown calls out the **Wash. Ct. App. all-zero** pattern and why chart 2 scopes to **W.D. Wash.** |
 
@@ -110,7 +110,8 @@ The **`--export`** path regenerates the same figures the Dash server shows — s
 | Chart | Why this type (not something else) |
 |-------|-------------------------------------|
 | Chart 1 (3D) | I needed **time × court stratum × mean cites** in one view after **collapsing** to dozens of points; a 2D line chart could show time, but separating **two courts** without overplotting got clearer once size encoded **opinion_count** in-month. |
-| Charts 2–3 (horizontal bars) | **Long categorical labels** (`case` titles). Vertical bars would truncate titles; horizontal bars keep the **unit** (`cite_count` clusters) on the x-axis where it is easy to compare. |
+| Chart 2 (3D) | **Rank × cite metric × row-count** separates “one loud row” from “many duplicate rows” for the same caption; color reinforces the cite metric. |
+| Chart 3 (horizontal bar) | **Long categorical labels** (`case` titles). Vertical bars would truncate titles; horizontal bars keep the **unit** (`cite_count` sums) on the x-axis where it is easy to compare. |
 | Color on chart 3 | Encodes **`opinion_rows`** so a big bar is not automatically “one opinion” — it might be **many duplicate rows** for the same caption, which is a visualization honesty choice. |
 
 **Weak claim:** “Plotly made nice charts.” (No defense of chart type vs question.)
