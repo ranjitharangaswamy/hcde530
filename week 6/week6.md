@@ -3,9 +3,9 @@
 ```
 #What I did this week
 
-1. I turned the stacked CourtListener export (`courtlistener_week5_repull_40k.csv`, ~39k rows) into **three interactive Plotly charts** that each answer **one** of my MP1a analytical questions, wrapped in a small **Dash** app with **Dash Mantine Components** for layout, alerts, and typography (per the [DMC getting-started pattern](https://www.dash-mantine-components.com/getting-started): `MantineProvider` around the layout).
-2. I kept the browser work **light on purpose**: heavy charts aggregate to roughly **45–48 plotted points** (month × court buckets; top-45 case titles) and the titles say how many rows the full CSV has — so a reader is not misled into thinking every dot is one opinion row.
-3. I hit the same **PEP 668** constraint as Week 5 when I tried to install Kaleido on the system Python. I fixed it the same way the course expects: **`python3 -m venv` inside `week 6/.venv`**, then `pip install` there, then run the Dash script with **`week 6/.venv/bin/python`** so exports and the server share one interpreter.
+1. I turned the stacked CourtListener export (I had saved my API data on a csv file which has ~39k rows) into **three interactive Plotly charts** that each answer **one** of my MP1a analytical questions, wrapped in a small **Dash** app with **Dash Mantine Components** for layout, alerts, and typography.
+2. I kept the browser work light on purpose, where heavy charts aggregate to roughly **45–48 plotted points** (month × court buckets; top-45 case titles) and the titles say how many rows the full CSV has — so a reader is not misled into thinking every dot is one opinion row.
+3. I hit the same **PEP 668** constraint as Week 5 when I tried to install Kaleido on the system Python. I fixed it the same way the course expects: **`python3 -m venv` inside `week 6/.venv`**, then `pip install` there, then run the Dash script with **`week 6/.venv/bin/python`** so exports and the server share one interpreter. (This took some back and forth googling and chatgpt research to save tokens)
 4. I exported **static `.jpg` files** with Kaleido for the rubric (the writeup allows PNG/SVG; the MP1a direction I followed was JPG) and committed them next to the script so the repo is the evidence trail, not only a screenshot on my desktop.
 
 ###Did these tasks using Cursor and Python
@@ -13,7 +13,7 @@
 1. Built **`courtlistener_mp1a_dash.py`**: loads the CSV with **pandas**, builds three `plotly` figures (`scatter_3d`, horizontal `bar` ×2), composes them inside **`dmc.MantineProvider` → `Container` → `Stack` / `SimpleGrid` / `Card` / `Alert`**, and runs locally on `127.0.0.1:8050`.
 2. Wrote **`--export`**: calls `fig.write_image(..., format="jpg")` for **`mp1a_chart1_court_level_cites_3d.jpg`**, **`mp1a_chart2_top_cited_cases_wd_wash.jpg`**, **`mp1a_chart3_top_authority_titles.jpg`** into the **`week 6/`** folder.
 3. Used **Cursor** to iterate on layout (for example: `dmc.Card` rejected a `span=` prop — I moved the full-width third chart into a vertical `Stack` under a `SimpleGrid` instead of guessing Mantine’s API).
-4. Updated **`week6.md`** (this file) so competencies point at **specific filenames and behaviors**, not a restatement of the assignment prompt.
+4. I wired **Dash callbacks** from **Mantine `Select` / `SegmentedControl` / `Slider`** inputs to **pandas → Plotly** for charts **(b)** and **(c)** so those views re-render from UI state (not only hover/zoom on a static figure).
 
 ```
 

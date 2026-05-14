@@ -20,7 +20,7 @@ import dash_mantine_components as dmc
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Dash, dcc
+from dash import Dash, Input, Output, callback, dcc
 
 HERE = Path(__file__).resolve().parent
 CSV_PATH = HERE / "Week6_files" / "courtlistener_week5_repull_40k.csv"
@@ -85,6 +85,14 @@ def top_cases_by_jurisdiction(df: pd.DataFrame, court_id: str = "wawd", top_n: i
     return g
 
 
+def top_cases_by_jurisdiction_mean(df: pd.DataFrame, court_id: str, top_n: int) -> pd.DataFrame:
+    """Alternative ranking: mean cite_count per case title (still deduped by title)."""
+    d = df[df["court_id"] == court_id].copy()
+    g = d.groupby(["case", "court", "court_id"], as_index=False).agg(mean_cite_count=("cite_count", "mean"))
+    g = g.sort_values("mean_cite_count", ascending=False).head(top_n)
+    return g.rename(columns={"mean_cite_count": "rank_metric"})
+
+
 def fig_q1_scatter3d_monthly(df: pd.DataFrame) -> go.Figure:
     """
     (a) Citation intensity by court level over time — 3D scatter (~48 monthly buckets × courts).
@@ -121,48 +129,97 @@ def fig_q1_scatter3d_monthly(df: pd.DataFrame) -> go.Figure:
     return fig
 
 
-def fig_q2_bar_top_cases(df: pd.DataFrame) -> go.Figure:
+def fig_q2_bar_top_cases(
+    df: pd.DataFrame,
+    *,
+    court_id: str = "wawd",
+    top_n: int = 45,
+    rank_mode: str = "max",
+) -> go.Figure:
     """
-    (b) Most cited judgments in W.D. Wash. (specific jurisdiction) — horizontal bar, top 45 titles.
+    (b) Most cited judgments in a chosen jurisdiction — horizontal bar, top_n titles.
+    rank_mode: 'max' = max cite per title; 'mean' = mean cite per title after dedupe.
     """
-    g = top_cases_by_jurisdiction(df, court_id="wawd", top_n=45)
+    top_n = int(max(5, min(60, top_n)))
+    if rank_mode == "mean":
+        g = top_cases_by_jurisdiction_mean(df, court_id=court_id, top_n=top_n)
+        x_col = "rank_metric"
+        color_col = "rank_metric"
+        x_label = "Mean cite_count per row (per case title)"
+        cbar = "Mean cite_count"
+    else:
+        g = top_cases_by_jurisdiction(df, court_id=court_id, top_n=top_n)
+        x_col = "max_cite_count"
+        color_col = "max_cite_count"
+        x_label = "Max cite_count in pull (dimensionless count)"
+        cbar = "Max cite_count"
+    rows_in_court = len(df[df["court_id"] == court_id])
+    if len(g) == 0:
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No case titles in this court slice (unexpected for this CSV).",
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
+            showarrow=False,
+        )
+        fig.update_layout(title="Question (b) — no rows to plot")
+        return fig
+    court_map = df.drop_duplicates("court_id").set_index("court_id")["court"]
+    court_label = str(court_map[court_id]) if court_id in court_map.index else str(court_id)
     fig = px.bar(
         g.iloc[::-1],
-        x="max_cite_count",
+        x=x_col,
         y="case",
         orientation="h",
-        color="max_cite_count",
+        color=color_col,
         color_continuous_scale="Viridis",
         title=(
-            "Most cited case titles in W.D. Wash. (max cite_count per title; "
-            f"45 of {len(df[df['court_id']=='wawd']):,} federal rows)"
+            f"Most cited case titles — {court_label} — rank by {rank_mode} cite_count per title "
+            f"(top {len(g)} of {rows_in_court:,} rows in slice; {len(df):,} rows in full CSV)"
         ),
-        labels={
-            "max_cite_count": "Max cite_count in pull (dimensionless count)",
-            "case": "Case title",
-        },
+        labels={x_col: x_label, "case": "Case title"},
     )
     fig.update_layout(
         coloraxis_showscale=True,
-        coloraxis_colorbar_title="Max cite_count",
+        coloraxis_colorbar_title=cbar,
         yaxis=dict(tickfont=dict(size=9)),
-        margin=dict(l=10, r=10, t=60, b=40),
+        margin=dict(l=10, r=10, t=70, b=40),
+        dragmode="select",
+        clickmode="event+select",
     )
+    fig.update_traces(selected_marker_opacity=0.85, unselected_marker_opacity=0.35)
     return fig
 
 
-def fig_q3_top_authorities(df: pd.DataFrame, top_n: int = 45) -> go.Figure:
+def fig_q3_top_authorities(df: pd.DataFrame, top_n: int = 45, min_opinion_rows: int = 1) -> go.Figure:
     """
     (c) Case titles that accumulate the most incoming cite_count in this snapshot
     (proxy for 'most central' authorities in the pull), capped for display.
     """
+    top_n = int(max(5, min(60, top_n)))
+    min_opinion_rows = int(max(1, min(200, min_opinion_rows)))
     g = (
         df.groupby("case", as_index=False)
         .agg(total_cite_count=("cite_count", "sum"), opinion_rows=("cite_count", "count"))
+        .query("opinion_rows >= @min_opinion_rows")
         .sort_values("total_cite_count", ascending=False)
         .head(top_n)
     )
     mean_cite = float(df["cite_count"].mean())
+    if len(g) == 0:
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No titles meet min_opinion_rows at this setting — loosen the Mantine slider.",
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
+            showarrow=False,
+        )
+        fig.update_layout(title="Question (c) — no rows to plot")
+        return fig
     fig = px.bar(
         g.iloc[::-1],
         x="total_cite_count",
@@ -172,7 +229,8 @@ def fig_q3_top_authorities(df: pd.DataFrame, top_n: int = 45) -> go.Figure:
         color_continuous_scale="Blues",
         title=(
             "Case titles with the highest summed cite_count across the dataset "
-            f"(top {len(g)} titles; mean cite_count per opinion row = {mean_cite:.4f})"
+            f"(top {len(g)} titles with ≥{min_opinion_rows} row(s) per title; "
+            f"mean cite_count per opinion row = {mean_cite:.4f})"
         ),
         labels={
             "total_cite_count": "Sum of cite_count (clusters summed across duplicate rows)",
@@ -183,12 +241,34 @@ def fig_q3_top_authorities(df: pd.DataFrame, top_n: int = 45) -> go.Figure:
     fig.update_layout(
         coloraxis_colorbar_title="Opinion rows",
         yaxis=dict(tickfont=dict(size=8)),
-        margin=dict(l=10, r=10, t=80, b=50),
+        margin=dict(l=10, r=10, t=90, b=50),
+        dragmode="select",
+        clickmode="event+select",
     )
+    fig.update_traces(selected_marker_opacity=0.85, unselected_marker_opacity=0.35)
     return fig
 
 
-def build_layout(fig1: go.Figure, fig2: go.Figure, fig3: go.Figure) -> dmc.MantineProvider:
+_GRAPH_CONFIG = {
+    "scrollZoom": True,
+    "displayModeBar": True,
+    "displaylogo": False,
+    "modeBarButtonsToRemove": ["lasso2d"],
+}
+
+
+def _court_select_data() -> list[dict[str, str]]:
+    return [
+        {"value": "wawd", "label": "Federal — W.D. Wash. (wawd)"},
+        {"value": "washctapp", "label": "State — Wash. Ct. App. / King County pull (washctapp)"},
+    ]
+
+
+def _slider_marks(min_v: int, max_v: int, step: int) -> list[dict]:
+    return [{"value": v, "label": str(v)} for v in range(min_v, max_v + 1, step)]
+
+
+def build_layout(df: pd.DataFrame, fig1: go.Figure) -> dmc.MantineProvider:
     intro = dmc.Stack(
         [
             dmc.Title("CourtListener MP1a — three linked analytical views", order=2),
@@ -223,7 +303,12 @@ def build_layout(fig1: go.Figure, fig2: go.Figure, fig3: go.Figure) -> dmc.Manti
                                 inheritPadding=True,
                                 py="xs",
                             ),
-                            dcc.Graph(id="fig-3d", figure=fig1, style={"height": "620px"}),
+                            dcc.Graph(
+                                id="fig-3d",
+                                figure=fig1,
+                                style={"height": "620px"},
+                                config=_GRAPH_CONFIG,
+                            ),
                         ],
                         withBorder=True,
                         shadow="sm",
@@ -235,7 +320,71 @@ def build_layout(fig1: go.Figure, fig2: go.Figure, fig3: go.Figure) -> dmc.Manti
                                 inheritPadding=True,
                                 py="xs",
                             ),
-                            dcc.Graph(id="fig-bar", figure=fig2, style={"height": "720px"}),
+                            dmc.Text(
+                                "Mantine controls below re-query pandas and rebuild the Plotly figure "
+                                "(box select / zoom still work on the chart).",
+                                size="sm",
+                                c="dimmed",
+                                mb="xs",
+                            ),
+                            dmc.SimpleGrid(
+                                cols={"base": 1, "sm": 2},
+                                spacing="md",
+                                children=[
+                                    dmc.Stack(
+                                        [
+                                            dmc.Text("Jurisdiction", size="sm", fw=600),
+                                            dmc.Select(
+                                                id="q2-court",
+                                                data=_court_select_data(),
+                                                value="wawd",
+                                                searchable=True,
+                                                clearable=False,
+                                                w="100%",
+                                            ),
+                                        ],
+                                        gap=6,
+                                    ),
+                                    dmc.Stack(
+                                        [
+                                            dmc.Text("Rank case titles by", size="sm", fw=600),
+                                            dmc.SegmentedControl(
+                                                id="q2-rank-mode",
+                                                data=[
+                                                    {"value": "max", "label": "Max cite / title"},
+                                                    {"value": "mean", "label": "Mean cite / title"},
+                                                ],
+                                                value="max",
+                                                fullWidth=True,
+                                            ),
+                                        ],
+                                        gap=6,
+                                    ),
+                                ],
+                            ),
+                            dmc.Stack(
+                                [
+                                    dmc.Text("How many titles to show", size="sm", fw=600),
+                                    dmc.Slider(
+                                        id="q2-top-n",
+                                        min=10,
+                                        max=50,
+                                        step=5,
+                                        value=45,
+                                        marks=_slider_marks(10, 50, 10),
+                                        mb="xs",
+                                    ),
+                                    dmc.Text(id="q2-summary", size="sm", c="dimmed"),
+                                ],
+                                gap=6,
+                                mt="sm",
+                            ),
+                            dcc.Graph(
+                                id="fig-bar",
+                                figure=fig_q2_bar_top_cases(df, court_id="wawd", top_n=45, rank_mode="max"),
+                                style={"height": "720px"},
+                                config=_GRAPH_CONFIG,
+                            ),
                         ],
                         withBorder=True,
                         shadow="sm",
@@ -249,7 +398,54 @@ def build_layout(fig1: go.Figure, fig2: go.Figure, fig3: go.Figure) -> dmc.Manti
                         inheritPadding=True,
                         py="xs",
                     ),
-                    dcc.Graph(id="fig-authorities", figure=fig3, style={"height": "720px"}),
+                    dmc.Text(
+                        "Sliders filter which titles qualify and how many bars render; hover and "
+                        "scroll-zoom stay on the Plotly side.",
+                        size="sm",
+                        c="dimmed",
+                        mb="xs",
+                    ),
+                    dmc.SimpleGrid(
+                        cols={"base": 1, "sm": 2},
+                        spacing="md",
+                        children=[
+                            dmc.Stack(
+                                [
+                                    dmc.Text("How many titles to show", size="sm", fw=600),
+                                    dmc.Slider(
+                                        id="q3-top-n",
+                                        min=10,
+                                        max=50,
+                                        step=5,
+                                        value=45,
+                                        marks=_slider_marks(10, 50, 10),
+                                    ),
+                                ],
+                                gap=6,
+                            ),
+                            dmc.Stack(
+                                [
+                                    dmc.Text("Minimum rows per title (noise filter)", size="sm", fw=600),
+                                    dmc.Slider(
+                                        id="q3-min-rows",
+                                        min=1,
+                                        max=20,
+                                        step=1,
+                                        value=1,
+                                        marks=_slider_marks(1, 20, 5),
+                                    ),
+                                ],
+                                gap=6,
+                            ),
+                        ],
+                    ),
+                    dmc.Text(id="q3-summary", size="sm", c="dimmed", mt="xs"),
+                    dcc.Graph(
+                        id="fig-authorities",
+                        figure=fig_q3_top_authorities(df, top_n=45, min_opinion_rows=1),
+                        style={"height": "720px"},
+                        config=_GRAPH_CONFIG,
+                    ),
                 ],
                 withBorder=True,
                 shadow="sm",
@@ -258,7 +454,7 @@ def build_layout(fig1: go.Figure, fig2: go.Figure, fig3: go.Figure) -> dmc.Manti
         gap="md",
     )
 
-    stats = df_stats_block()
+    stats = df_stats_block(df)
 
     return dmc.MantineProvider(
         dmc.Container(
@@ -269,8 +465,7 @@ def build_layout(fig1: go.Figure, fig2: go.Figure, fig3: go.Figure) -> dmc.Manti
     )
 
 
-def df_stats_block() -> dmc.Card:
-    df = load_df()
+def df_stats_block(df: pd.DataFrame) -> dmc.Card:
     mean_all = float(df["cite_count"].mean())
     mean_wawd = float(df.loc[df["court_id"] == "wawd", "cite_count"].mean())
     mean_wash = float(df.loc[df["court_id"] == "washctapp", "cite_count"].mean())
@@ -308,6 +503,46 @@ def df_stats_block() -> dmc.Card:
     )
 
 
+def register_callbacks(app: Dash, df: pd.DataFrame) -> None:
+    """Wire Mantine inputs to Plotly figures for charts 2 and 3."""
+
+    @callback(
+        Output("fig-bar", "figure"),
+        Output("q2-summary", "children"),
+        Input("q2-court", "value"),
+        Input("q2-rank-mode", "value"),
+        Input("q2-top-n", "value"),
+    )
+    def update_q2(court: str | None, rank_mode: str | None, top_n: float | int | None) -> tuple[go.Figure, str]:
+        court_id = court or "wawd"
+        mode = rank_mode if rank_mode in ("mean", "max") else "max"
+        n = int(top_n) if top_n is not None else 45
+        fig = fig_q2_bar_top_cases(df, court_id=court_id, top_n=n, rank_mode=mode)
+        rows_slice = int((df["court_id"] == court_id).sum())
+        summary = (
+            f"Mantine → pandas: court_id={court_id}, rank={mode}, top_n={n}. "
+            f"Slice has {rows_slice:,} rows; full CSV has {len(df):,} rows."
+        )
+        return fig, summary
+
+    @callback(
+        Output("fig-authorities", "figure"),
+        Output("q3-summary", "children"),
+        Input("q3-top-n", "value"),
+        Input("q3-min-rows", "value"),
+    )
+    def update_q3(top_n: float | int | None, min_rows: float | int | None) -> tuple[go.Figure, str]:
+        n = int(top_n) if top_n is not None else 45
+        mrows = int(min_rows) if min_rows is not None else 1
+        fig = fig_q3_top_authorities(df, top_n=n, min_opinion_rows=mrows)
+        summary = (
+            f"Mantine → pandas: top_n={n}, min_opinion_rows={mrows}. "
+            f"Titles must have at least {mrows} CSV row(s) before they can appear. "
+            f"Full CSV has {len(df):,} rows."
+        )
+        return fig, summary
+
+
 def export_jpgs(fig1: go.Figure, fig2: go.Figure, fig3: go.Figure) -> None:
     try:
         import kaleido  # noqa: F401
@@ -332,15 +567,16 @@ def main() -> None:
 
     df = load_df()
     fig1 = fig_q1_scatter3d_monthly(df)
-    fig2 = fig_q2_bar_top_cases(df)
-    fig3 = fig_q3_top_authorities(df)
+    fig2 = fig_q2_bar_top_cases(df, court_id="wawd", top_n=45, rank_mode="max")
+    fig3 = fig_q3_top_authorities(df, top_n=45, min_opinion_rows=1)
 
     if args.export:
         export_jpgs(fig1, fig2, fig3)
         return
 
     app = Dash(__name__)
-    app.layout = build_layout(fig1, fig2, fig3)
+    app.layout = build_layout(df, fig1)
+    register_callbacks(app, df)
     # Local dev server — bind 127.0.0.1
     app.run(debug=False, host="127.0.0.1", port=8050)
 
