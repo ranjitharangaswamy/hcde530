@@ -16,12 +16,37 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
-import dash_mantine_components as dmc
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Dash, Input, Output, callback, dcc
+
+if TYPE_CHECKING:
+    from dash import Dash
+
+# Dash + Mantine are imported lazily so notebooks can `import courtlistener_mp1a_dash`
+# for load_df / fig_* using only pandas + plotly (no dash_mantine_components required).
+_dash_ui: SimpleNamespace | None = None
+
+
+def _dash_mantine_stack() -> SimpleNamespace:
+    """Load Dash + dash_mantine_components only when building or serving the web UI."""
+    global _dash_ui
+    if _dash_ui is None:
+        import dash_mantine_components as dmc
+        from dash import Dash, Input, Output, callback, dcc
+
+        _dash_ui = SimpleNamespace(
+            dmc=dmc,
+            Dash=Dash,
+            Input=Input,
+            Output=Output,
+            callback=callback,
+            dcc=dcc,
+        )
+    return _dash_ui
 
 HERE = Path(__file__).resolve().parent
 CSV_PATH = HERE / "Week6_files" / "courtlistener_week5_repull_40k.csv"
@@ -284,6 +309,7 @@ def _slider_marks(min_v: int, max_v: int, step: int) -> list[dict]:
 
 
 def _q2_default_badges() -> list:
+    dmc = _dash_mantine_stack().dmc
     return [
         dmc.Badge("court=wawd", variant="light", color="violet"),
         dmc.Badge("rank=max", variant="light", color="gray"),
@@ -292,6 +318,8 @@ def _q2_default_badges() -> list:
 
 
 def build_layout(df: pd.DataFrame, fig1: go.Figure) -> dmc.MantineProvider:
+    ui = _dash_mantine_stack()
+    dmc, dcc = ui.dmc, ui.dcc
     intro = dmc.Stack(
         [
             dmc.Title("CourtListener MP1a — three linked analytical views", order=2),
@@ -574,6 +602,7 @@ def build_layout(df: pd.DataFrame, fig1: go.Figure) -> dmc.MantineProvider:
 
 
 def df_stats_block(df: pd.DataFrame) -> dmc.Card:
+    dmc = _dash_mantine_stack().dmc
     mean_all = float(df["cite_count"].mean())
     mean_wawd = float(df.loc[df["court_id"] == "wawd", "cite_count"].mean())
     mean_wash = float(df.loc[df["court_id"] == "washctapp", "cite_count"].mean())
@@ -613,6 +642,11 @@ def df_stats_block(df: pd.DataFrame) -> dmc.Card:
 
 def register_callbacks(app: Dash, df: pd.DataFrame) -> None:
     """Wire Mantine inputs to Plotly figures for charts 2 and 3."""
+    ui = _dash_mantine_stack()
+    dmc = ui.dmc
+    callback = ui.callback
+    Input = ui.Input
+    Output = ui.Output
 
     @callback(
         Output("fig-q2-3d", "figure"),
@@ -690,7 +724,8 @@ def main() -> None:
         export_jpgs(fig1, fig2, fig3)
         return
 
-    app = Dash(__name__)
+    ui = _dash_mantine_stack()
+    app = ui.Dash(__name__)
     app.layout = build_layout(df, fig1)
     register_callbacks(app, df)
     # Local dev server — bind 127.0.0.1
