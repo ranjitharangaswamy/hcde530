@@ -1,5 +1,7 @@
 """
-HCDE 530 — MP1a CourtListener interactive charts (Plotly + Dash Mantine Components).
+HCDE 530 — Mini Project 1a CourtListener interactive charts (Plotly + Dash Mantine Components).
+
+Answers the **three main analytical questions** in MiniProject1/ (not the Week 6 mini count questions).
 
 Data: week 6/Week6_files/courtlistener_week5_repull_40k.csv (~39k rows; cite metadata
       is non-zero only for W.D. Wash. rows in this pull).
@@ -49,8 +51,9 @@ def _dash_mantine_stack() -> SimpleNamespace:
     return _dash_ui
 
 HERE = Path(__file__).resolve().parent
+REPO_ROOT = HERE.parent
 CSV_PATH = HERE / "Week6_files" / "courtlistener_week5_repull_40k.csv"
-EXPORT_DIR = HERE
+EXPORT_DIR = REPO_ROOT / "MiniProject1" / "images"
 
 
 def load_df() -> pd.DataFrame:
@@ -322,7 +325,7 @@ def build_layout(df: pd.DataFrame, fig1: go.Figure) -> dmc.MantineProvider:
     dmc, dcc = ui.dmc, ui.dcc
     intro = dmc.Stack(
         [
-            dmc.Title("CourtListener MP1a — three linked analytical views", order=2),
+            dmc.Title("Mini Project 1a — three linked analytical views", order=2),
             dmc.Text(
                 "Dataset: courtlistener_week5_repull_40k.csv — aggregated slices (~45–48 points) "
                 "for performance; full table has 39,040 rows.",
@@ -712,7 +715,7 @@ def export_jpgs(fig1: go.Figure, fig2: go.Figure, fig3: go.Figure) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--export", action="store_true", help="Write JPGs to week 6 folder and exit.")
+    parser.add_argument("--export", action="store_true", help="Write JPGs to MiniProject1/images/ and exit.")
     args = parser.parse_args()
 
     df = load_df()
