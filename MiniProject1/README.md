@@ -18,8 +18,10 @@ See **Section 1** in `Miniproject1.ipynb` for narrative, caveats (state `cite_co
 |------|---------|
 | `Miniproject1.ipynb` | Main narrative notebook (run top to bottom) |
 | `data/courtlistener.csv` | Source data (~39k CourtListener opinion rows) |
-| `images/mp1a_chart*.jpg` | Static chart exports (Kaleido) |
+| `images/mp1a_chart*.jpg` | Static chart exports (Kaleido; matches notebook figures) |
 | `mp1_charts.py` | Plotly figure builders + export helper |
+| `mp1_dash.py` | Interactive [Dash gallery](https://dash.gallery/Portal/)-style app (Mantine + Plotly) |
+| `mp1.md` | Glossary, Section 4 conclusions (per question), Section 5 process, competency claims |
 
 ## Run the notebook
 
@@ -36,4 +38,18 @@ python3 mp1_charts.py
 
 Requires `pandas`, `plotly`, and `kaleido`.
 
-Optional interactive Dash app (same three questions) lives in the course repo at `week 6/courtlistener_mp1a_dash.py` and writes JPGs into `images/`.
+## Interactive dashboard (recommended for exploration)
+
+```bash
+cd MiniProject1
+pip install -r requirements.txt
+python mp1_dash.py
+```
+
+Open **http://127.0.0.1:8050/** — rotate 3D charts, use sliders for court / rank / top-N, and box-select bars on chart (c).
+
+Export JPGs from the same figures:
+
+```bash
+python mp1_dash.py --export
+```

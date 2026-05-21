@@ -3,3 +3,5 @@ plotly
 kaleido
 jupyter
 nbformat
+dash>=2.14
+dash-mantine-components>=0.12

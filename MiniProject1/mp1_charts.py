@@ -24,6 +24,28 @@ GRAPH_CONFIG = {
     "modeBarButtonsToRemove": ["lasso2d"],
 }
 
+GALLERY_TEMPLATE = "plotly_white"
+GALLERY_COLOR_SCALE = "Viridis"
+GALLERY_TREEMAP_SCALE = "Turbo"
+COURT_LINE_COLORS = {
+    "Federal: U.S. District Court (W.D. Wash.)": "#7C3AED",
+    "State: Wash. Court of Appeals (King County pull)": "#F97316",
+}
+
+
+def apply_gallery_theme(fig: go.Figure) -> go.Figure:
+    """Polished defaults inspired by Plotly Dash gallery apps."""
+    fig.update_layout(
+        template=GALLERY_TEMPLATE,
+        font=dict(family="Inter, system-ui, sans-serif", size=13),
+        title=dict(font=dict(size=16)),
+        hoverlabel=dict(bgcolor="white", font_size=12),
+        margin=dict(l=48, r=24, t=72, b=48),
+        paper_bgcolor="rgb(248,249,252)",
+        plot_bgcolor="rgb(255,255,255)",
+    )
+    return fig
+
 
 def load_df() -> pd.DataFrame:
     df = pd.read_csv(CSV_PATH)
@@ -56,37 +78,61 @@ def agg_monthly_court_cites(df: pd.DataFrame, max_points: int = 48) -> pd.DataFr
     return g
 
 
+def agg_judge_federal(df: pd.DataFrame, top_n: int = 10) -> pd.DataFrame:
+    d = df[(df["court_id"] == "wawd") & df["judge_clean"].notna()].copy()
+    return (
+        d.groupby("judge_clean", as_index=False)
+        .agg(
+            opinion_count=("case", "count"),
+            mean_cite_count=("cite_count", "mean"),
+            total_cite_count=("cite_count", "sum"),
+        )
+        .sort_values("mean_cite_count", ascending=False)
+        .head(int(max(1, top_n)))
+    )
+
+
 def fig_q1_scatter3d_monthly(df: pd.DataFrame) -> go.Figure:
+    """Question (a): line + markers — mean cites over time by court level (readable vs 3D)."""
     g = agg_monthly_court_cites(df, max_points=48)
-    fig = px.scatter_3d(
+    fig = px.line(
         g,
         x="year_month",
-        y="court_code",
-        z="mean_cite_count",
+        y="mean_cite_count",
         color="court_level",
-        size="opinion_count",
-        size_max=40,
+        color_discrete_map=COURT_LINE_COLORS,
+        line_shape="linear",
+        markers=True,
         hover_data={
             "court_id": True,
             "mean_cite_count": ":.3f",
             "opinion_count": True,
-            "court_code": False,
+            "court_level": False,
         },
         title=(
-            "Mean incoming citations per opinion by month and court level "
-            f"(aggregated; up to {len(g)} points from {len(df):,} rows)"
+            "Federal mean cites rise over time while state means stay at zero "
+            f"(monthly buckets; {len(g)} points from {len(df):,} rows)"
         ),
+        labels={
+            "year_month": "Month (decision date)",
+            "mean_cite_count": "Mean cite_count per opinion row",
+            "court_level": "Court level",
+            "opinion_count": "Opinions in bucket",
+        },
+    )
+    fig.update_traces(
+        mode="lines+markers",
+        marker=dict(size=10, line=dict(width=1, color="white")),
+        line=dict(width=3),
     )
     fig.update_layout(
-        scene=dict(
-            xaxis_title="Month (decision date)",
-            yaxis_title="Court id (0 = washctapp, 1 = wawd)",
-            zaxis_title="Mean cite_count (incoming cites / opinion in window)",
-        ),
-        margin=dict(l=0, r=0, t=60, b=0),
+        xaxis_title="Month (decision date)",
+        yaxis_title="Mean cite_count (incoming cites / opinion in bucket)",
         legend_title_text="Court level",
+        hovermode="x unified",
+        uirevision="mp1-q1",
     )
-    return fig
+    return apply_gallery_theme(fig)
 
 
 def _q2_case_frame(
@@ -159,7 +205,7 @@ def fig_q2_scatter3d_jurisdiction(
             "rank_1based": True,
             "court_id": True,
         },
-        color_continuous_scale="Viridis",
+        color_continuous_scale=GALLERY_COLOR_SCALE,
         title=(
             f"3D — most cited case titles — {court_label} — by {mode} cite (top {len(g)} titles; "
             f"{rows_in_court:,} rows in slice; {len(df):,} in CSV)"
@@ -177,8 +223,9 @@ def fig_q2_scatter3d_jurisdiction(
         ),
         margin=dict(l=0, r=0, t=70, b=0),
         coloraxis_colorbar_title="Cite metric",
+        uirevision="mp1-q2",
     )
-    return fig
+    return apply_gallery_theme(fig)
 
 
 def fig_q3_top_authorities(df: pd.DataFrame, top_n: int = 45, min_opinion_rows: int = 1) -> go.Figure:
@@ -204,30 +251,40 @@ def fig_q3_top_authorities(df: pd.DataFrame, top_n: int = 45, min_opinion_rows: 
         )
         fig.update_layout(title="Question (c) — no rows to plot")
         return fig
-    fig = px.bar(
-        g.iloc[::-1],
-        x="total_cite_count",
-        y="case",
-        orientation="h",
-        color="opinion_rows",
-        color_continuous_scale="Blues",
+    g = g.copy()
+    g["root"] = "Citation mass (top titles)"
+    cite_min, cite_max = int(g["total_cite_count"].min()), int(g["total_cite_count"].max())
+    fig = px.treemap(
+        g,
+        path=["root", "case"],
+        values="total_cite_count",
+        color="total_cite_count",
+        color_continuous_scale=GALLERY_TREEMAP_SCALE,
+        range_color=[cite_min, cite_max],
+        custom_data=["opinion_rows"],
         title=(
-            "Case titles with the highest summed cite_count across the dataset "
-            f"(top {len(g)} titles with ≥{min_opinion_rows} row(s) per title; "
-            f"mean cite_count per opinion row = {mean_cite:.4f})"
+            "Most citation mass concentrates in a few case titles "
+            f"(treemap: top {len(g)} with ≥{min_opinion_rows} row(s)/title; "
+            f"mean cite_count per row = {mean_cite:.4f}; {len(df):,} rows total)"
         ),
-        labels={
-            "total_cite_count": "Sum of cite_count (clusters summed across duplicate rows)",
-            "case": "Case title",
-            "opinion_rows": "Rows in pull for this title",
-        },
+    )
+    fig.update_traces(
+        textinfo="label+value",
+        texttemplate="%{label}<br>%{value:,.0f} cites",
+        textfont=dict(size=11, color="white"),
+        marker=dict(line=dict(width=1.5, color="rgba(255,255,255,0.85)")),
+        hovertemplate=(
+            "<b>%{label}</b><br>"
+            "Sum cite_count=%{value:,.0f}<br>"
+            "Opinion rows=%{customdata[0]}<extra></extra>"
+        ),
     )
     fig.update_layout(
-        coloraxis_colorbar_title="Opinion rows",
-        yaxis=dict(tickfont=dict(size=8)),
-        margin=dict(l=10, r=10, t=90, b=50),
+        coloraxis_colorbar_title="Sum cite_count",
+        margin=dict(l=10, r=10, t=90, b=10),
+        uirevision="mp1-q3",
     )
-    return fig
+    return apply_gallery_theme(fig)
 
 
 def export_chart_images(
@@ -244,7 +301,7 @@ def export_chart_images(
     out_dir = out_dir or IMAGES_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
     paths = [
-        (fig1, out_dir / "mp1a_chart1_court_level_cites_3d.jpg", 820),
+        (fig1, out_dir / "mp1a_chart1_court_level_over_time.jpg", 820),
         (fig2, out_dir / "mp1a_chart2_top_cited_cases_wd_wash.jpg", 900),
         (fig3, out_dir / "mp1a_chart3_top_authority_titles.jpg", 900),
     ]
