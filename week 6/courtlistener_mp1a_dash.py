@@ -9,8 +9,8 @@ Data: week 6/Week6_files/courtlistener_week5_repull_40k.csv (~39k rows; cite met
 Run interactively:
   week 6/.venv/bin/python "week 6/courtlistener_mp1a_dash.py"
 
-Export static JPGs (same figures, ~45-point aggregates where noted). **Note:** JPGs are
-      snapshots — chart (b) is a **3D** view in the live Dash app; the export is a frozen angle.
+Export static JPGs (same figures, ~45-point aggregates where noted). The live Dash app and
+      notebook use **interactive 2D** Plotly (hover, zoom, pan) — not 3D.
   week 6/.venv/bin/python "week 6/courtlistener_mp1a_dash.py" --export
 """
 
@@ -105,46 +105,52 @@ def agg_judge_federal(df: pd.DataFrame, top_n: int = 10) -> pd.DataFrame:
     return g
 
 
-def fig_q1_scatter3d_monthly(df: pd.DataFrame) -> go.Figure:
+def fig_q1_monthly(df: pd.DataFrame) -> go.Figure:
     """
-    (a) Citation intensity by court level over time — 3D scatter (~48 monthly buckets × courts).
+    (a) Citation intensity by court level over time — interactive line chart (~48 monthly buckets).
     """
     g = agg_monthly_court_cites(df, max_points=48)
-    fig = px.scatter_3d(
+    fig = px.line(
         g,
         x="year_month",
-        y="court_code",
-        z="mean_cite_count",
+        y="mean_cite_count",
         color="court_level",
-        size="opinion_count",
-        size_max=40,
+        markers=True,
+        line_shape="linear",
         hover_data={
             "court_id": True,
             "mean_cite_count": ":.3f",
             "opinion_count": True,
             "court_code": False,
         },
+        labels={
+            "year_month": "Month (decision date)",
+            "mean_cite_count": "Mean cite_count per opinion row",
+            "court_level": "Court level",
+        },
         title=(
             "Mean incoming citations per opinion by month and court level "
-            f"(aggregated; up to {len(g)} points from {len(df):,} rows)"
+            f"(aggregated; {len(g)} month×court points from {len(df):,} rows)"
         ),
     )
     fig.update_layout(
-        scene=dict(
-            xaxis_title="Month (decision date)",
-            yaxis_title="Court id (0 = washctapp, 1 = wawd)",
-            zaxis_title="Mean cite_count (incoming cites / opinion in window)",
-        ),
-        margin=dict(l=0, r=0, t=60, b=0),
+        margin=dict(l=10, r=10, t=70, b=50),
         legend_title_text="Court level",
+        hovermode="x unified",
+        yaxis_tickformat=".3f",
     )
     return fig
+
+
+def fig_q1_scatter3d_monthly(df: pd.DataFrame) -> go.Figure:
+    """Backward-compatible alias — now interactive 2D line chart."""
+    return fig_q1_monthly(df)
 
 
 def _q2_case_frame(
     df: pd.DataFrame, *, court_id: str, top_n: int, rank_mode: str
 ) -> tuple[pd.DataFrame, str, int, str, str]:
-    """Build one tidy frame for Q(b) 3D: rank, cite metric, opinion row count per title."""
+    """Build one tidy frame for Q(b): rank, cite metric, opinion row count per title."""
     top_n = int(max(5, min(60, top_n)))
     d = df[df["court_id"] == court_id].copy()
     rows_in_court = len(d)
@@ -173,7 +179,7 @@ def _q2_case_frame(
     return g, court_label, rows_in_court, metric_label, rank_mode
 
 
-def fig_q2_scatter3d_jurisdiction(
+def fig_q2_jurisdiction(
     df: pd.DataFrame,
     *,
     court_id: str = "wawd",
@@ -181,11 +187,12 @@ def fig_q2_scatter3d_jurisdiction(
     rank_mode: str = "max",
 ) -> go.Figure:
     """
-    (b) Most cited judgments in a jurisdiction — 3D scatter (interactive rotate/zoom in browser).
-    Axes: rank (1 = strongest in slice) × cite metric × how many duplicate rows exist for that title.
+    (b) Most cited judgments in a jurisdiction — interactive horizontal bar chart.
     """
     mode = rank_mode if rank_mode in ("mean", "max") else "max"
-    g, court_label, rows_in_court, metric_label, _ = _q2_case_frame(df, court_id=court_id, top_n=top_n, rank_mode=mode)
+    g, court_label, rows_in_court, metric_label, _ = _q2_case_frame(
+        df, court_id=court_id, top_n=top_n, rank_mode=mode
+    )
     if len(g) == 0:
         fig = go.Figure()
         fig.add_annotation(
@@ -198,42 +205,53 @@ def fig_q2_scatter3d_jurisdiction(
         )
         fig.update_layout(title="Question (b) — no rows to plot")
         return fig
-    fig = px.scatter_3d(
-        g,
-        x="rank_1based",
-        y="cite_value",
-        z="opinion_rows",
-        color="cite_value",
-        size="opinion_rows",
-        size_max=55,
-        hover_name="case",
-        hover_data={
-            "case": False,
-            "cite_value": ":.3f",
-            "opinion_rows": True,
-            "rank_1based": True,
-            "court_id": True,
-        },
+    plot_g = g.iloc[::-1]
+    fig = px.bar(
+        plot_g,
+        x="cite_value",
+        y="case",
+        orientation="h",
+        color="opinion_rows",
         color_continuous_scale="Viridis",
+        hover_data={
+            "rank_1based": True,
+            "opinion_rows": True,
+            "court_id": True,
+            "cite_value": ":.3f",
+        },
+        labels={
+            "cite_value": metric_label,
+            "case": "Case title",
+            "opinion_rows": "Opinion rows for this title",
+            "rank_1based": "Rank in slice (1 = highest)",
+        },
         title=(
-            f"3D — most cited case titles — {court_label} — by {mode} cite (top {len(g)} titles; "
+            f"Most cited case titles — {court_label} — by {mode} cite (top {len(g)} titles; "
             f"{rows_in_court:,} rows in slice; {len(df):,} in CSV)"
         ),
     )
     fig.update_layout(
-        scene=dict(
-            xaxis_title="Rank in slice (1 = highest metric)",
-            yaxis_title=metric_label,
-            zaxis_title="Opinion rows for this title (duplicate rows in pull)",
-            bgcolor="rgb(248,249,252)",
-            xaxis=dict(backgroundcolor="rgb(248,249,252)"),
-            yaxis=dict(backgroundcolor="rgb(248,249,252)"),
-            zaxis=dict(backgroundcolor="rgb(248,249,252)"),
-        ),
-        margin=dict(l=0, r=0, t=70, b=0),
-        coloraxis_colorbar_title="Cite metric",
+        margin=dict(l=10, r=10, t=80, b=50),
+        coloraxis_colorbar_title="Opinion rows",
+        yaxis=dict(tickfont=dict(size=8)),
+        xaxis_tickformat=".3f",
+        hovermode="closest",
+        dragmode="zoom",
     )
     return fig
+
+
+def fig_q2_scatter3d_jurisdiction(
+    df: pd.DataFrame,
+    *,
+    court_id: str = "wawd",
+    top_n: int = 45,
+    rank_mode: str = "max",
+) -> go.Figure:
+    """Backward-compatible alias — now interactive 2D horizontal bar chart."""
+    return fig_q2_jurisdiction(
+        df, court_id=court_id, top_n=top_n, rank_mode=rank_mode
+    )
 
 
 def fig_q3_top_authorities(df: pd.DataFrame, top_n: int = 45, min_opinion_rows: int = 1) -> go.Figure:
@@ -353,7 +371,7 @@ def build_layout(df: pd.DataFrame, fig1: go.Figure) -> dmc.MantineProvider:
                     dmc.Card(
                         [
                             dmc.CardSection(
-                                dmc.Title("Question (a) — court level & time (3D)", order=4),
+                                dmc.Title("Question (a) — court level & time (interactive line)", order=4),
                                 inheritPadding=True,
                                 py="xs",
                             ),
@@ -393,7 +411,7 @@ def build_layout(df: pd.DataFrame, fig1: go.Figure) -> dmc.MantineProvider:
                                                             order=4,
                                                             mb=0,
                                                         ),
-                                                        dmc.Badge("3D", variant="filled", color="violet"),
+                                                        dmc.Badge("2D interactive", variant="filled", color="violet"),
                                                         dmc.Badge(
                                                             "Mantine + Plotly",
                                                             variant="light",
@@ -404,7 +422,7 @@ def build_layout(df: pd.DataFrame, fig1: go.Figure) -> dmc.MantineProvider:
                                                     align="flex-end",
                                                 ),
                                                 dmc.Text(
-                                                    "Rotate and zoom the scene; use the controls to "
+                                                    "Hover, zoom, and pan the chart; use the controls to "
                                                     "change court, ranking mode, and how many titles load.",
                                                     size="sm",
                                                     c="dimmed",
@@ -425,9 +443,9 @@ def build_layout(df: pd.DataFrame, fig1: go.Figure) -> dmc.MantineProvider:
                             dmc.CardSection(
                                 [
                                     dmc.Alert(
-                                        "Tip: drag the plot background to orbit. Scroll to zoom. "
-                                        "Each point is one case title; size shows how many CSV rows share that title.",
-                                        title="Reading this 3D view",
+                                        "Tip: scroll to zoom, drag to pan. Each bar is one case title; "
+                                        "bar length is the cite metric; color shows how many CSV rows share that title.",
+                                        title="Reading this chart",
                                         color="blue",
                                         variant="light",
                                         mb="sm",
@@ -456,7 +474,7 @@ def build_layout(df: pd.DataFrame, fig1: go.Figure) -> dmc.MantineProvider:
                                                         [
                                                             dmc.Text("Jurisdiction", size="sm", fw=600),
                                                             dmc.Tooltip(
-                                                                label="Switches pandas slice by court_id before the 3D aggregation.",
+                                                                label="Switches pandas slice by court_id before ranking titles.",
                                                                 position="top",
                                                                 withArrow=True,
                                                                 children=dmc.Select(
@@ -668,7 +686,7 @@ def register_callbacks(app: Dash, df: pd.DataFrame) -> None:
         fig = fig_q2_scatter3d_jurisdiction(df, court_id=court_id, top_n=n, rank_mode=mode)
         rows_slice = int((df["court_id"] == court_id).sum())
         summary = (
-            f"Mantine → pandas → Plotly 3D: court_id={court_id}, rank={mode}, top_n={n}. "
+            f"Mantine → pandas → Plotly: court_id={court_id}, rank={mode}, top_n={n}. "
             f"Slice has {rows_slice:,} rows; full CSV has {len(df):,} rows."
         )
         badges = [
@@ -703,7 +721,7 @@ def export_jpgs(fig1: go.Figure, fig2: go.Figure, fig3: go.Figure) -> None:
         raise SystemExit("Install kaleido in the project venv to export JPGs.") from e
 
     paths = [
-        (fig1, EXPORT_DIR / "mp1a_chart1_court_level_cites_3d.jpg"),
+        (fig1, EXPORT_DIR / "mp1a_chart1_court_level_cites_monthly.jpg"),
         (fig2, EXPORT_DIR / "mp1a_chart2_top_cited_cases_wd_wash.jpg"),
         (fig3, EXPORT_DIR / "mp1a_chart3_top_authority_titles.jpg"),
     ]

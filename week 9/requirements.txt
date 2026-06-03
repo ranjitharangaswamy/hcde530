@@ -1,0 +1,11 @@
+praw
+pandas
+nltk
+scikit-learn
+python-dotenv
+jupyter
+requests
+beautifulsoup4
+googlesearch-python
+newspaper3k
+flask

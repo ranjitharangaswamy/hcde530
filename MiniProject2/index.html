@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DocketSignal | Legal AI Public Discourse Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero__image" aria-hidden="true"></div>
+      <nav class="topbar" aria-label="Project navigation">
+        <a class="brand-link" href="../README.md">DocketSignal</a>
+        <a href="#themes">Themes</a>
+        <a href="#evidence">Evidence</a>
+        <a href="#downloads">Downloads</a>
+      </nav>
+      <section class="hero__content">
+        <p class="eyebrow">Legal AI Public Discourse Analyzer</p>
+        <h1>DocketSignal</h1>
+        <p class="lede">Reddit-only public discourse pipeline for early-stage qualitative analysis: theme frequency, illustrative excerpts, and researcher memos.</p>
+        <blockquote class="method-quote">This tool does not automate grounded theory. It supports early-stage qualitative analysis by surfacing recurring themes, frequency signals, illustrative excerpts, and short researcher memos. The human researcher still interprets and validates the findings.</blockquote>
+        <div class="hero__actions">
+          <a class="button button--primary" href="#themes">Inspect themes</a>
+          <a class="button button--secondary" href="#downloads">Download data</a>
+        </div>
+      </section>
+    </header>
+
+    <main>
+      <section class="stats-strip" aria-label="Corpus statistics">
+        <article>
+          <span id="stat-items">25</span>
+          <p>Reddit rows coded</p>
+        </article>
+        <article>
+          <span id="stat-themes">8</span>
+          <p>ranked themes</p>
+        </article>
+        <article>
+          <span id="stat-sources">1</span>
+          <p>source (Reddit)</p>
+        </article>
+        <article>
+          <span>2023-2026</span>
+          <p>discourse window</p>
+        </article>
+      </section>
+
+      <section class="dashboard" id="themes">
+        <div class="section-heading">
+          <p class="eyebrow">Focused coding output</p>
+          <h2>Ranked discourse themes</h2>
+          <p>Select a theme to inspect coded evidence, memo logic, and product implications.</p>
+        </div>
+
+        <div class="dashboard__grid">
+          <aside class="theme-list" aria-label="Theme ranking">
+            <div class="panel-title">
+              <span>Rank</span>
+              <span>Share</span>
+            </div>
+            <div id="theme-list"></div>
+          </aside>
+
+          <section class="theme-detail" id="evidence" aria-live="polite">
+            <div class="detail-kicker">Selected theme</div>
+            <div class="detail-head">
+              <div>
+                <h2 id="detail-title">Accuracy, trust, and verification anxiety</h2>
+                <p id="detail-statement"></p>
+              </div>
+              <div class="share-badge">
+                <strong id="detail-percent"></strong>
+                <span>of corpus</span>
+              </div>
+            </div>
+
+            <div class="signal-grid">
+              <article>
+                <span id="detail-count"></span>
+                <p>coded items</p>
+              </article>
+              <article>
+                <span id="detail-sentiment"></span>
+                <p>mean Reddit score</p>
+              </article>
+              <article>
+                <span id="detail-frame"></span>
+                <p>dominant frame</p>
+              </article>
+            </div>
+
+            <div class="evidence-layout">
+              <section>
+                <h3>Illustrative excerpts</h3>
+                <div id="evidence-list"></div>
+              </section>
+              <section class="memo-panel">
+                <h3>Research memo</h3>
+                <p id="memo-text"></p>
+                <h3>UX/product implication</h3>
+                <p id="implication-text"></p>
+              </section>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="downloads" id="downloads">
+        <div class="section-heading">
+          <p class="eyebrow">Research artifacts</p>
+          <h2>Downloads and method trace</h2>
+          <p>These links point to the generated CSV artifacts used by the static showcase dashboard.</p>
+        </div>
+        <div class="download-grid">
+          <a class="download-card" href="data/processed_corpus.csv" download>
+            <span>CSV</span>
+            <strong>Processed corpus</strong>
+            <p>Cleaned Reddit rows with primary theme, confidence, and subreddit metadata.</p>
+          </a>
+          <a class="download-card" href="outputs/theme_summary.csv" download>
+            <span>CSV</span>
+            <strong>Theme summary</strong>
+            <p>Frequency-ranked themes with percentages and mean Reddit score.</p>
+          </a>
+          <a class="download-card" href="outputs/illustrative_excerpts.csv" download>
+            <span>CSV</span>
+            <strong>Illustrative excerpts</strong>
+            <p>Top-scored Reddit excerpts per theme with source URLs.</p>
+          </a>
+          <a class="download-card" href="outputs/memos.md" download>
+            <span>MD</span>
+            <strong>Researcher memos</strong>
+            <p>Short interpretive notes grounded in excerpt evidence.</p>
+          </a>
+          <a class="download-card" href="outputs/top_themes.png" download>
+            <span>PNG</span>
+            <strong>Top themes chart</strong>
+            <p>Bar chart of theme frequency in the Reddit corpus.</p>
+          </a>
+          <a class="download-card" href="notebooks/legal_ai_discourse_analysis.ipynb" download>
+            <span>IPYNB</span>
+            <strong>Analysis notebook</strong>
+            <p>Runnable pipeline walkthrough and artifact inspection.</p>
+          </a>
+        </div>
+
+        <div class="method-note">
+          <h3>Method stance</h3>
+          <p>Reddit-only scope. Keyword-assisted coding surfaces candidate themes; the researcher validates definitions, merges/splits codes, and interprets memos. Frequency ranks where to look first—it does not prove saturation or causality.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>HCDE 530 Mini Project 2. Public legal-tech discourse only; no private legal matters or client data are included.</p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

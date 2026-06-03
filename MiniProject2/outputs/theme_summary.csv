@@ -1,0 +1,9 @@
+theme,theme_label,count,percentage,mean_reddit_score,top_subreddits
+accuracy_trust,"Accuracy, trust, and verification",5,20.0,340.2,"lawyers, LegalTech, ChatGPT"
+adoption_resistance,Adoption resistance and firm culture,4,16.0,176.2,"LawFirm, LegalTech, ChatGPT"
+ethics_regulation,"Ethics, confidentiality, and governance",4,16.0,97.5,"lawyers, LawFirm"
+efficiency_gains,Efficiency and workflow gains,3,12.0,115.3,"LegalTech, ChatGPT"
+job_displacement,Role change vs job displacement,3,12.0,154.3,"lawyers, LawFirm"
+tool_review,Tool comparisons and vendor selection,2,8.0,85.5,LegalTech
+ediscovery_review,eDiscovery and document review,2,8.0,173.0,"lawyers, LegalTech"
+cost_value,"Cost, billing, and ROI",2,8.0,72.5,"lawyers, LawFirm"
