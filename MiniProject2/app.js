@@ -1,4 +1,4 @@
-const themes = [
+const SAMPLE_THEMES = [
   {
     id: "accuracy_trust",
     name: "Accuracy, trust, and verification",
@@ -166,13 +166,13 @@ const themes = [
     implication: "Comparison views should show integration surface, price stack, and verification features side by side.",
     excerpts: [
       {
-        text: "Harvey vs CoCounsel — worried about subscription creep when you add research plus AI tiers.",
+        text: "Harvey vs CoCounsel: worried about subscription creep when you add research plus AI tiers.",
         subreddit: "r/LegalTech",
         score: 98,
         url: "https://www.reddit.com/r/LegalTech/comments/sample_harvey_cocounsel/"
       },
       {
-        text: "Spellbook vs generic GPT — better guardrails but still not signing outputs without review.",
+        text: "Spellbook vs generic GPT: better guardrails but still not signing outputs without review.",
         subreddit: "r/LegalTech",
         score: 73,
         url: "https://www.reddit.com/r/LegalTech/comments/sample_spellbook/"
@@ -222,7 +222,7 @@ const themes = [
         url: "https://www.reddit.com/r/LawFirm/comments/sample_flat_fee_ai/"
       },
       {
-        text: "Clio Work with Vincent AI — monthly cost adds up. Anyone compare it to Claude with firm templates?",
+        text: "Clio Work with Vincent AI: monthly cost adds up. Anyone compare it to Claude with firm templates?",
         subreddit: "r/lawyers",
         score: 54,
         url: "https://www.reddit.com/r/lawyers/comments/sample_clio_ai/"
@@ -231,10 +231,162 @@ const themes = [
   }
 ];
 
+function isFrameDetected(value) {
+  return Boolean(value && value !== "none" && value !== "unframed");
+}
+
+function formatFrameLabel(value) {
+  if (!isFrameDetected(value)) return "None detected";
+  return String(value).replace(/_/g, " ");
+}
+
+/** Row IDs already quoted in the scroll narrative (index.html). */
+const SCROLLY_ROW_IDS = new Set([
+  "reddit_009",
+  "reddit_001",
+  "reddit_002",
+  "reddit_005",
+  "reddit_003",
+]);
+
+function formatQualChip(value) {
+  if (!value || value === "none" || value === "unframed") return "";
+  return String(value).replace(/_/g, " ");
+}
+
+function formatQualValue(value) {
+  const text = formatQualChip(value);
+  if (!text) return "";
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function renderExcerptContextHtml(item) {
+  const chips = [];
+  if (item.sentiment_label) {
+    chips.push({ label: "Sentiment", value: item.sentiment_label });
+  }
+  const emotion = formatQualValue(item.dominant_emotion);
+  if (emotion) chips.push({ label: "Emotion", value: emotion });
+  const frame = formatQualValue(item.rhetorical_frame);
+  if (frame) chips.push({ label: "Frame", value: frame });
+  if (!chips.length) return "";
+
+  const chipHtml = chips
+    .map(
+      (chip) =>
+        `<span class="excerpt-context__chip"><span class="excerpt-context__label">${escapeHtml(chip.label)}</span><span class="excerpt-context__value">${escapeHtml(chip.value)}</span></span>`
+    )
+    .join("");
+
+  return `<p class="excerpt-context">${chipHtml}</p>`;
+}
+
+function buildThemeExcerpts(themeId, data, maxCount = 5) {
+  const excerptByRowId = Object.fromEntries(
+    (data.excerpts || [])
+      .filter((row) => row.row_id)
+      .map((row) => [row.row_id, row])
+  );
+  const processedById = Object.fromEntries(
+    (data.processedCorpus || []).map((row) => [row.id, row])
+  );
+
+  const items = (data.allItems || [])
+    .filter((item) => item.primary_theme === themeId && !SCROLLY_ROW_IDS.has(item.id))
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+    .slice(0, maxCount);
+
+  if (!items.length) {
+    return (data.excerpts || [])
+      .filter((row) => row.theme === themeId && !SCROLLY_ROW_IDS.has(row.row_id))
+      .sort((a, b) => a.rank - b.rank)
+      .slice(0, maxCount)
+      .map(mapExcerptRecord);
+  }
+
+  return items.map((item) => {
+    const ex = excerptByRowId[item.id];
+    const processed = processedById[item.id];
+    return mapExcerptRecord({
+      ...ex,
+      row_id: item.id,
+      title: ex?.title ?? item.title ?? "",
+      body_text: ex?.body_text ?? processed?.clean_text ?? item.clean_text ?? "",
+      author: ex?.author ?? "",
+      post_type: item.post_type || ex?.post_type || "post",
+      subreddit: item.subreddit || ex?.subreddit,
+      score: item.score ?? ex?.score ?? 0,
+      source_url: item.source_url || ex?.source_url,
+      source_link_label: item.source_link_label || ex?.source_link_label,
+      source_link_type: item.source_link_type || ex?.source_link_type,
+      excerpt: ex?.excerpt,
+      sentiment_label: item.sentiment_label,
+      dominant_emotion: item.dominant_emotion,
+      rhetorical_frame: item.rhetorical_frame,
+    });
+  });
+}
+
+function mapExcerptRecord(ex) {
+  const sub = ex.subreddit ? String(ex.subreddit).replace(/^r\//, "") : "unknown";
+  return {
+    row_id: ex.row_id,
+    title: ex.title || "",
+    body_text: ex.body_text || "",
+    author: ex.author || "",
+    post_type: ex.post_type || "post",
+    text: ex.excerpt || ex.body_text || ex.title || "",
+    subreddit: `r/${sub}`,
+    score: ex.score ?? 0,
+    url: ex.source_url,
+    source_url: ex.source_url,
+    source_link_label: ex.source_link_label,
+    source_link_type: ex.source_link_type,
+    sentiment_label: ex.sentiment_label,
+    dominant_emotion: ex.dominant_emotion,
+    rhetorical_frame: ex.rhetorical_frame,
+  };
+}
+
+function hydrateThemesFromShowcase(fallbackThemes) {
+  const data = window.showcaseData;
+  if (!data?.themeSummary?.length) return [...fallbackThemes];
+
+  const fallbackById = Object.fromEntries(fallbackThemes.map((theme) => [theme.id, theme]));
+
+  return [...data.themeSummary]
+    .sort((a, b) => b.count - a.count)
+    .map((row) => {
+      const existing = fallbackById[row.theme];
+      const exRows = buildThemeExcerpts(row.theme, data);
+      return {
+        id: row.theme,
+        name: row.theme_label || row.theme,
+        count: row.count,
+        percentage: row.percentage,
+        meanScore: row.mean_reddit_score ?? 0,
+        frameRaw: row.top_frame,
+        frame: formatFrameLabel(row.top_frame),
+        statement:
+          existing?.statement ||
+          `${row.theme_label} appears in ${row.count} coded items (${row.percentage}% of corpus).`,
+        memo:
+          existing?.memo ||
+          `Sentiment split: ${row.sentiment_positive_pct ?? 0}% positive, ${row.sentiment_negative_pct ?? 0}% negative. Dominant emotion: ${row.top_emotion || "none"}. Subreddits: ${row.top_subreddits || "n/a"}.`,
+        implication:
+          existing?.implication ||
+          "Treat frequency as a prioritization signal; validate themes with constant comparison.",
+        excerpts: exRows.length ? exRows : existing?.excerpts || [],
+      };
+    });
+}
+
+const themes = hydrateThemesFromShowcase(SAMPLE_THEMES);
+
 const corpusStats = {
-  codedItems: 25,
-  sourceTypes: 1,
-  themes: themes.length
+  codedItems: window.showcaseData?.stats?.totalItems ?? 25,
+  sourceTypes: window.showcaseData?.stats?.uniqueSubreddits ?? 1,
+  themes: themes.length,
 };
 
 const themeList = document.querySelector("#theme-list");
@@ -244,6 +396,8 @@ const detailPercent = document.querySelector("#detail-percent");
 const detailCount = document.querySelector("#detail-count");
 const detailSentiment = document.querySelector("#detail-sentiment");
 const detailFrame = document.querySelector("#detail-frame");
+const detailFrameTile = document.querySelector("#detail-frame-tile");
+const signalGrid = document.querySelector(".signal-grid");
 const evidenceList = document.querySelector("#evidence-list");
 const memoText = document.querySelector("#memo-text");
 const implicationText = document.querySelector("#implication-text");
@@ -251,6 +405,46 @@ const implicationText = document.querySelector("#implication-text");
 document.querySelector("#stat-items").textContent = corpusStats.codedItems;
 document.querySelector("#stat-themes").textContent = corpusStats.themes;
 document.querySelector("#stat-sources").textContent = corpusStats.sourceTypes;
+
+function applyProvenance(provenance) {
+  const banner = document.querySelector("#provenance-banner");
+  const label = document.querySelector("#provenance-label");
+  const detail = document.querySelector("#provenance-detail");
+  const collected = document.querySelector("#provenance-collected");
+
+  if (!banner || !provenance) return;
+
+  label.textContent = provenance.label || "Unknown source";
+  detail.textContent = provenance.detail || "";
+  collected.textContent = provenance.collected_at || "n/a";
+
+  banner.classList.toggle("is-live", provenance.mode === "live_reddit_api");
+  banner.classList.toggle("is-sample", provenance.mode === "sample_corpus");
+
+  if (provenance.row_count) {
+    document.querySelector("#stat-items").textContent = provenance.row_count;
+  }
+  if (provenance.theme_count) {
+    document.querySelector("#stat-themes").textContent = provenance.theme_count;
+  }
+
+  const methodsNote = document.querySelector("#detail-methods-provenance");
+  if (methodsNote) {
+    if (provenance.mode === "live_reddit_api") {
+      methodsNote.textContent =
+        "Corpus: live Reddit API collection. Scores reflect current Reddit upvotes at collection time; theme coding still requires researcher validation.";
+    } else if (provenance.mode === "sample_corpus") {
+      methodsNote.textContent =
+        "Corpus: curated sample (not live scrapes). Reddit scores are illustrative engagement values from the sample corpus; rerun with --live-reddit for live upvotes.";
+    } else {
+      methodsNote.textContent = provenance.detail || methodsNote.textContent;
+    }
+  }
+}
+
+if (window.corpusProvenance) {
+  applyProvenance(window.corpusProvenance);
+}
 
 function renderThemeList(selectedId) {
   themeList.innerHTML = themes.map((theme, index) => `
@@ -270,19 +464,25 @@ function renderTheme(theme) {
   detailPercent.textContent = `${theme.percentage}%`;
   detailCount.textContent = theme.count;
   detailSentiment.textContent = `score ${theme.meanScore}`;
-  detailFrame.textContent = theme.frame;
+  const frameValue = theme.frameRaw ?? theme.frame;
+  const showFrame = isFrameDetected(frameValue);
+  if (detailFrameTile) detailFrameTile.hidden = !showFrame;
+  if (signalGrid) signalGrid.classList.toggle("signal-grid--two-up", !showFrame);
+  if (showFrame && detailFrame) {
+    detailFrame.textContent = formatFrameLabel(frameValue);
+  }
   memoText.textContent = theme.memo;
   implicationText.textContent = theme.implication;
-  evidenceList.innerHTML = theme.excerpts.map((excerpt) => `
-    <article class="excerpt">
-      <p>${excerpt.text}</p>
-      <div class="source-line">
-        <span>${excerpt.subreddit}</span>
-        <span>score ${excerpt.score}</span>
-      </div>
-      <a href="${excerpt.url}" target="_blank" rel="noreferrer">View thread</a>
-    </article>
-  `).join("");
+  const evidenceNote = document.querySelector("#evidence-note");
+  const evidenceMeta = getThemeEvidenceMeta(theme.id);
+  if (evidenceNote) {
+    evidenceNote.textContent = evidenceMeta.note;
+  }
+
+  evidenceList.innerHTML = theme.excerpts.length
+    ? renderThemeEvidence(theme)
+    : `<p class="excerpt-empty">No additional excerpts for this theme beyond the scroll narrative.</p>`;
+  evidenceList.className = `evidence-list evidence-list--${evidenceMeta.layout}`;
   renderThemeList(theme.id);
 }
 
@@ -295,3 +495,23 @@ themeList.addEventListener("click", (event) => {
 });
 
 renderTheme(themes[0]);
+
+function renderDashboardThemeViz() {
+  const summary = window.showcaseData?.themeSummary;
+  if (!summary?.length || typeof window.renderThemeFrequencyChart !== "function") return;
+
+  window.renderThemeFrequencyChart("dashboard-theme-viz", summary, {
+    ascending: true,
+    height: 440,
+    title: "Top themes in Reddit legal-AI discourse",
+    hint: "Click a row to open that theme",
+    onThemeClick: (themeId) => {
+      const theme = themes.find((item) => item.id === themeId);
+      if (theme) renderTheme(theme);
+    },
+  });
+}
+
+renderDashboardThemeViz();
+
+window.legalAIDashboard = { themes, renderTheme, renderDashboardThemeViz };

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Design thinking notes for DocketSignal and why each legal-AI discourse theme gets its own visualization metaphor.">
+    <title>Design thinking | DocketSignal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=20260604">
+  </head>
+  <body class="design-page">
+    <header class="design-page__header">
+      <nav class="design-page__nav" aria-label="Design documentation navigation">
+        <a class="design-page__brand" href="index.html">DocketSignal</a>
+        <div class="design-page__nav-links">
+          <a href="index.html#story">Story</a>
+          <a href="index.html#themes">Themes</a>
+          <a href="index.html#evidence">Evidence</a>
+          <a href="design.html" aria-current="page" class="design-page__nav-current">Design thinking</a>
+          <a href="reflection.html">Reflection</a>
+        </div>
+      </nav>
+      <div class="design-page__intro">
+        <p class="eyebrow">Portfolio · HCDE 530 · Mini Project 2</p>
+        <h1>Design thinking behind the theme dashboard</h1>
+        <p class="design-page__lede">
+          DocketSignal codes public Reddit legal-AI discourse into eight themes. I did not want every theme to look like the same excerpt card. Each one needed a layout that matched how people were talking about that issue.
+        </p>
+        <div class="design-page__actions">
+          <a class="button button--primary design-page__btn" href="index.html#themes">Open the live showcase</a>
+          <a class="button button--secondary design-page__btn" href="index.html#evidence">Jump to evidence panel</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="design-page__main">
+      <section class="design-story" aria-labelledby="design-problem">
+        <div class="design-story__inner">
+          <p class="design-story__kicker">01 · The problem</p>
+          <h2 id="design-problem">One chart cannot carry eight different arguments</h2>
+          <p>
+            Frequency bars answer an important question: <em>where does discourse concentrate?</em> They do not show what it feels like to read adoption pushback, a vendor comparison thread, or a privilege-log win story. Those threads sound different from each other. Some read like warnings. Some read like workshop complaints, policy memos, workflow handoffs, role anxiety, product screenshots, emotional review wins, or billing math.
+          </p>
+          <p>
+            A generic quote card would flatten all of that texture. It would also make the evidence easier to skim past because every panel would feel interchangeable. For this portfolio piece, I wanted the interface to show qualitative sensitivity. The visualization should respect what the code is about, along with how often it appears.
+          </p>
+        </div>
+      </section>
+
+      <section class="design-story design-story--alt" aria-labelledby="design-insight">
+        <div class="design-story__inner">
+          <p class="design-story__kicker">02 · Design insight</p>
+          <h2 id="design-insight">Match metaphor to discourse type and theme label</h2>
+          <p>
+            I treated each theme as a small design brief. Before picking a layout, I asked: if a researcher pinned this thread on a wall during synthesis, what artifact would they reach for? Accuracy threads read like citations to warn a colleague. Adoption friction belongs on a sticky-note culture map. Ethics posts resemble governance memos. Efficiency stories chain like workflow steps. Job-change anxiety attaches to roles more than abstract bars. Tool threads invite side-by-side vendor comparison. eDiscovery posts carry sentiment weight even when the topic is technical. Cost threads land naturally on a ledger.
+          </p>
+          <blockquote class="design-pullquote">
+            Different visual forms are part of the analysis. When the form changes with the argument, readers slow down and connect the excerpt to its context.
+          </blockquote>
+        </div>
+      </section>
+
+      <section class="design-themes" aria-labelledby="design-theme-map">
+        <div class="section-heading">
+          <p class="eyebrow">Theme map</p>
+          <h2 id="design-theme-map">Eight themes, eight visual languages</h2>
+          <p>Each row links back to the live dashboard. Select the theme in the showcase to see the layout with real coded excerpts.</p>
+        </div>
+
+        <ol class="design-theme-grid">
+          <li class="design-theme-card">
+            <span class="design-theme-card__index">01</span>
+            <div class="design-theme-card__body">
+              <h3>Accuracy, trust, and verification</h3>
+              <p class="design-theme-card__layout">Editorial citation blocks</p>
+              <p>Practitioners write like they are correcting the record. I used bold titles, quoted warnings, and an audit tone so the layout feels closer to a legal memo excerpt.</p>
+            </div>
+            <a class="design-theme-card__link" href="index.html#themes">View in showcase</a>
+          </li>
+          <li class="design-theme-card">
+            <span class="design-theme-card__index">02</span>
+            <div class="design-theme-card__body">
+              <h3>Adoption resistance and firm culture</h3>
+              <p class="design-theme-card__layout">FigJam-style sticky board</p>
+              <p>Culture friction is messy and concurrent. Rotated sticky notes on a dot grid evoke workshop synthesis because the debate moves in several directions at once.</p>
+            </div>
+            <a class="design-theme-card__link" href="index.html#themes">View in showcase</a>
+          </li>
+          <li class="design-theme-card">
+            <span class="design-theme-card__index">03</span>
+            <div class="design-theme-card__body">
+              <h3>Ethics, confidentiality, and governance</h3>
+              <p class="design-theme-card__layout">Policy memo headers</p>
+              <p>Red stamp, formal title band, compliance register. The frame signals “review before deploy,” which matches the posture of the underlying threads.</p>
+            </div>
+            <a class="design-theme-card__link" href="index.html#themes">View in showcase</a>
+          </li>
+          <li class="design-theme-card">
+            <span class="design-theme-card__index">04</span>
+            <div class="design-theme-card__body">
+              <h3>Efficiency and workflow gains</h3>
+              <p class="design-theme-card__layout">Pipeline handoff steps</p>
+              <p>Numbered nodes with arrows make time savings tangible as a sequence: intake, draft, review, sign-off. The value comes from the handoff pattern.</p>
+            </div>
+            <a class="design-theme-card__link" href="index.html#themes">View in showcase</a>
+          </li>
+          <li class="design-theme-card">
+            <span class="design-theme-card__index">05</span>
+            <div class="design-theme-card__body">
+              <h3>Role change vs job displacement</h3>
+              <p class="design-theme-card__layout">Role persona avatars</p>
+              <p>Paralegal, student, associate, and counsel voices get symbolic portraits so human impact stays visible in a debate often reduced to headcount charts.</p>
+            </div>
+            <a class="design-theme-card__link" href="index.html#themes">View in showcase</a>
+          </li>
+          <li class="design-theme-card">
+            <span class="design-theme-card__index">06</span>
+            <div class="design-theme-card__body">
+              <h3>Tool comparisons and vendor selection</h3>
+              <p class="design-theme-card__layout">Thread + product preview split</p>
+              <p>Reddit evaluation sits on the left. A public Spellbook marketing site reference sits on the right, linked to spellbook.legal so the comparison stays grounded.</p>
+            </div>
+            <a class="design-theme-card__link" href="index.html#themes">View in showcase</a>
+          </li>
+          <li class="design-theme-card">
+            <span class="design-theme-card__index">07</span>
+            <div class="design-theme-card__body">
+              <h3>eDiscovery and document review</h3>
+              <p class="design-theme-card__layout">Feelings wheel + excerpt cards</p>
+              <p>Review wins carry pragmatic relief and cautious trust. Plotting dominant emotion and sentiment on a wheel makes affect visible in a technical subdomain.</p>
+            </div>
+            <a class="design-theme-card__link" href="index.html#themes">View in showcase</a>
+          </li>
+          <li class="design-theme-card">
+            <span class="design-theme-card__index">08</span>
+            <div class="design-theme-card__body">
+              <h3>Cost, billing, and ROI</h3>
+              <p class="design-theme-card__layout">Currency notes &amp; itemized invoices</p>
+              <p>Flat-fee and margin threads render as ROI currency notes; SaaS subscription threads render as perforated invoices with line items.</p>
+            </div>
+            <a class="design-theme-card__link" href="index.html#themes">View in showcase</a>
+          </li>
+        </ol>
+      </section>
+
+      <section class="design-story" aria-labelledby="design-system">
+        <div class="design-story__inner">
+          <p class="design-story__kicker">03 · System choices</p>
+          <h2 id="design-system">What stays consistent while the metaphors change</h2>
+          <ul class="design-principles">
+            <li>
+              <strong>Warm legal palette</strong>
+              Cream paper, oxblood accents, and antique gold. I wanted the page to feel scholarly and approachable, with less of the cold “legal tech SaaS blue” default.
+            </li>
+            <li>
+              <strong>One frequency layer for ranking</strong>
+              The dot-and-bar chart handles comparison across themes; evidence panels handle depth within a theme. Separation keeps hierarchy clear.
+            </li>
+            <li>
+              <strong>Traceable excerpts</strong>
+              Every layout preserves subreddit, score, and source link. The visual treatment should keep the research trail visible.
+            </li>
+            <li>
+              <strong>Static-first implementation</strong>
+              Layout logic lives in <code>theme-evidence.js</code> with shared CSS tokens. The page stays portable for GitHub Pages portfolio hosting.
+            </li>
+            <li>
+              <strong>Responsive containment</strong>
+              Sticky boards stack in narrow panels; comparison and feelings layouts collapse gracefully on small viewports.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="design-story design-story--alt" aria-labelledby="design-process">
+        <div class="design-story__inner">
+          <p class="design-story__kicker">04 · Process</p>
+          <h2 id="design-process">From pipeline output to portfolio narrative</h2>
+          <p>
+            The analysis pipeline produces counts, excerpts, and memos. The showcase layer adds three reading modes: a scroll-driven story for the research question, an interactive frequency chart for prioritization, and the theme evidence panel for qualitative depth. Design thinking sits beside “Evidence” in the nav because that panel is where the visualization argument lives. It shows how the coding scheme handles different kinds of discourse.
+          </p>
+          <p>
+            If I extended this project, I would user-test whether distinct metaphors improve recall of theme definitions among legal researchers. I would also test whether a “simple mode” toggle helps first-time viewers who prefer uniform cards. For portfolio purposes, the current version makes the design decision visible in one click per theme.
+          </p>
+        </div>
+      </section>
+
+      <section class="design-cta">
+        <h2>See the layouts with live coded excerpts</h2>
+        <p>Start with the ranked theme chart, then click through all eight evidence panels.</p>
+        <a class="button button--primary design-page__btn" href="index.html#themes">Return to DocketSignal showcase</a>
+      </section>
+    </main>
+
+    <footer>
+      <p>HCDE 530 Mini Project 2 · Design documentation for portfolio review.</p>
+      <p class="footer__copyright">Copyright reserved | Ranjitha Rangaswamy | 2026</p>
+    </footer>
+  </body>
+</html>

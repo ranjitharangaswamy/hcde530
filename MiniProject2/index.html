@@ -7,16 +7,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260604">
   </head>
   <body>
     <header class="hero">
       <div class="hero__image" aria-hidden="true"></div>
       <nav class="topbar" aria-label="Project navigation">
         <a class="brand-link" href="../README.md">DocketSignal</a>
+        <a href="#story">Story</a>
         <a href="#themes">Themes</a>
+        <a href="#discourse-explorer">Explorer</a>
         <a href="#evidence">Evidence</a>
-        <a href="#downloads">Downloads</a>
+        <a href="design.html" class="topbar__design-card">Design thinking</a>
+        <a href="reflection.html" class="topbar__design-card">Reflection</a>
+        <a href="#explore">Explore data</a>
       </nav>
       <section class="hero__content">
         <p class="eyebrow">Legal AI Public Discourse Analyzer</p>
@@ -24,11 +28,174 @@
         <p class="lede">Reddit-only public discourse pipeline for early-stage qualitative analysis: theme frequency, illustrative excerpts, and researcher memos.</p>
         <blockquote class="method-quote">This tool does not automate grounded theory. It supports early-stage qualitative analysis by surfacing recurring themes, frequency signals, illustrative excerpts, and short researcher memos. The human researcher still interprets and validates the findings.</blockquote>
         <div class="hero__actions">
-          <a class="button button--primary" href="#themes">Inspect themes</a>
-          <a class="button button--secondary" href="#downloads">Download data</a>
+          <a class="button button--primary" href="#story">Read the story</a>
+          <a class="button button--secondary" href="#themes">Inspect themes</a>
         </div>
+        <a class="hero__scroll" href="#story" aria-label="Scroll to story">
+          <span>Scroll</span>
+          <span class="hero__scroll-line" aria-hidden="true"></span>
+        </a>
       </section>
     </header>
+
+    <div class="scrolly-marquee" aria-label="Legal AI discourse subreddits referenced in this corpus">
+      <div class="scrolly-marquee__track"></div>
+    </div>
+
+    <section class="scrolly-story" id="story" aria-label="Scroll narrative">
+      <div class="scrolly-story__inner">
+        <article class="scrolly-step scrolly-reveal">
+          <p class="scrolly-kicker">Legal AI discourse · Research question</p>
+          <h2 class="scrolly-headline">What do practitioners argue about most when legal AI comes up in public forums?</h2>
+          <p class="scrolly-body">This showcase codes public Reddit threads with keyword themes and sentiment. It does not settle the debates, but it ranks where practitioners spend their argumentative energy when firms are not in the room.</p>
+          <figure class="scrolly-evidence-quote reddit-quote">
+            <p class="reddit-quote__title">Lawyer here — stop using ChatGPT for case citations</p>
+            <blockquote class="reddit-quote__body">
+              <p>Every week someone posts about getting burned by fake cases. LLMs are probabilistic text generators not legal databases. Use purpose-built legal research tools or you are asking for sanctions. Human verification is mandatory.</p>
+            </blockquote>
+            <figcaption class="reddit-quote__meta">
+              <span>r/ChatGPT</span>
+              <span>892 pts</span>
+              <span>u/ethics_nerd</span>
+            </figcaption>
+          </figure>
+        </article>
+
+        <article class="scrolly-step scrolly-step--dark scrolly-reveal">
+          <p class="scrolly-kicker">Short answer from this corpus</p>
+          <h2 class="scrolly-headline">Verification and trust<br><em>outrank everything else.</em></h2>
+          <p class="scrolly-body">In a 25-row Reddit sample, accuracy and verification anxiety is the top coded theme. The arguments repeat: fabricated citations, post-Mata caution, and speed that still demands a human sign-off.</p>
+          <ul class="scrolly-wordlist">
+            <li>accuracy & trust</li>
+            <li>tool comparison</li>
+            <li>adoption resistance</li>
+            <li>ethics & confidentiality</li>
+            <li>efficiency gains</li>
+            <li>job displacement</li>
+          </ul>
+          <figure class="scrolly-evidence-quote scrolly-evidence-quote--dark reddit-quote">
+            <p class="reddit-quote__title reddit-quote__title--label">Illustrative comment · r/lawyers</p>
+            <blockquote class="reddit-quote__body">
+              <p>We piloted Harvey for contract review. Accuracy is better than generic chatbots but I still catch wrong clause summaries weekly. The value is speed on first pass, not final judgment. You must validate everything before it goes to a client.</p>
+            </blockquote>
+            <figcaption class="reddit-quote__meta">
+              <span>r/lawyers</span>
+              <span>156 pts</span>
+              <span>u/biglaw_associate</span>
+            </figcaption>
+          </figure>
+        </article>
+
+        <div class="scrolly-pair scrolly-reveal">
+          <div class="scrolly-pair__sticky">
+            <p class="scrolly-kicker">Finding 01 / 03 · Top theme</p>
+            <h2 class="scrolly-headline scrolly-headline--compact">Which argument<br><em>shows up most?</em></h2>
+            <p class="scrolly-body">Accuracy, trust, and verification (hallucination fear, citation checks, and mandatory human review) leads the frequency ranking in this sample.</p>
+            <p class="scrolly-meta">Keyword coding · Reddit-only · researcher validation required</p>
+          </div>
+          <div class="scrolly-pair__panels">
+            <article class="scrolly-stat-card">
+              <p class="scrolly-stat-card__index">01 / 03</p>
+              <p class="scrolly-stat-card__value" data-scrolly="data-top-theme-pct">20%</p>
+              <p class="scrolly-stat-card__label">of coded rows map to <strong data-scrolly="data-top-theme-label">Accuracy, trust, and verification</strong></p>
+              <div class="scrolly-stat-card__grid" id="scrolly-theme-grid"></div>
+              <p class="scrolly-stat-card__note"><span data-scrolly="data-top-theme-count">5</span> posts and comments in a <span data-scrolly="data-items">25</span>-row showcase corpus.</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="scrolly-pair scrolly-reveal">
+          <div class="scrolly-pair__sticky">
+            <p class="scrolly-kicker">Finding 02 / 03 · Sentiment</p>
+            <h2 class="scrolly-headline scrolly-headline--compact">Are they hopeful<br><em>or skeptical?</em></h2>
+            <p class="scrolly-body">Both. VADER polarity on cleaned text surfaces workflow optimism alongside hallucination warnings. Practitioners argue in mixed tone, not pure hype or uniform panic.</p>
+          </div>
+          <div class="scrolly-pair__panels">
+            <article class="scrolly-stat-card">
+              <p class="scrolly-stat-card__index">02 / 03</p>
+              <p class="scrolly-stat-card__value"><span data-count-to="48" data-count-suffix="%" data-scrolly="data-sentiment">48%</span></p>
+              <p class="scrolly-stat-card__label">positive sentiment across the corpus</p>
+              <div class="scrolly-sent-bar" aria-hidden="true">
+                <span class="pos" style="width:48%"></span>
+                <span class="neu" style="width:32%"></span>
+                <span class="neg" style="width:20%"></span>
+              </div>
+              <p class="scrolly-stat-card__note">Illustrative split from current pipeline run. Open the Sentiment tab for full breakdown.</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="scrolly-pair scrolly-reveal">
+          <div class="scrolly-pair__sticky">
+            <p class="scrolly-kicker">Finding 03 / 03 · Coverage</p>
+            <h2 class="scrolly-headline scrolly-headline--compact">How many distinct<br><em>debates appear?</em></h2>
+            <p class="scrolly-body">Eight keyword themes from one public source type. The map is intentionally narrow (Reddit only), so frequency shows where practitioners argue in the open, not what firms decide behind closed doors.</p>
+          </div>
+          <div class="scrolly-pair__panels">
+            <article class="scrolly-stat-card">
+              <p class="scrolly-stat-card__index">03 / 03</p>
+              <p class="scrolly-stat-card__value"><span data-count-to="8" data-scrolly="data-themes">8</span></p>
+              <p class="scrolly-stat-card__label">themes surfaced from <span data-count-to="25" data-scrolly="data-items">25</span> coded items</p>
+              <p class="scrolly-stat-card__note">Subreddits: r/lawyers, r/LawFirm, r/LegalTech, r/ChatGPT. See the provenance banner below for sample vs live API.</p>
+            </article>
+          </div>
+        </div>
+
+        <article class="scrolly-step scrolly-reveal">
+          <p class="scrolly-kicker">Illustrative threads · From the corpus</p>
+          <h2 class="scrolly-headline">What else do they<br><em>argue about?</em></h2>
+          <p class="scrolly-body">After verification, practitioners split across vendor choice, firm politics, ethics walls, and workflow speed. These excerpts are representative, not exhaustive, of the coded sample.</p>
+
+          <figure class="scrolly-evidence-quote reddit-quote">
+            <p class="reddit-quote__title">Anyone actually trusting ChatGPT for research after Mata?</p>
+            <blockquote class="reddit-quote__body">
+              <p>I'm a solo and tried ChatGPT for a motion outline. It cited cases that looked real but were completely fabricated. After Mata I feel like I need to verify every sentence. Curious what others use that is actually grounded in real citations.</p>
+            </blockquote>
+            <figcaption class="reddit-quote__meta">
+              <span>r/lawyers</span>
+              <span>412 pts</span>
+              <span>u/solo_litigator</span>
+            </figcaption>
+          </figure>
+
+          <figure class="scrolly-evidence-quote reddit-quote">
+            <p class="reddit-quote__title">Partners still refuse to adopt any AI tools</p>
+            <blockquote class="reddit-quote__body">
+              <p>I'm at a 40 attorney firm. Younger associates use ChatGPT quietly. Partners say malpractice risk and client confidentiality. We have no firm AI policy. Perfect is the enemy of good but nobody wants to be the test case.</p>
+            </blockquote>
+            <figcaption class="reddit-quote__meta">
+              <span>r/LawFirm</span>
+              <span>234 pts</span>
+              <span>u/associate_year3</span>
+            </figcaption>
+          </figure>
+
+          <figure class="scrolly-evidence-quote reddit-quote">
+            <p class="reddit-quote__title">Harvey vs CoCounsel for mid-size litigation shop?</p>
+            <blockquote class="reddit-quote__body">
+              <p>Managing partner wants us to pick one AI stack this quarter. Harvey demo was impressive but pricing is opaque. CoCounsel integrates with Westlaw which our associates already live in. Worried about subscription creep when you add research plus AI tiers.</p>
+            </blockquote>
+            <figcaption class="reddit-quote__meta">
+              <span>r/LegalTech</span>
+              <span>98 pts</span>
+              <span>u/lit_support_lead</span>
+            </figcaption>
+          </figure>
+        </article>
+
+        <article class="scrolly-step scrolly-step--closing scrolly-reveal">
+          <p class="scrolly-kicker">Legal AI discourse · Next step</p>
+          <h2 class="scrolly-headline">The pipeline ranks the arguments.<br><em>You still read the threads.</em></h2>
+          <p class="scrolly-body">DocketSignal surfaces where public legal-AI talk concentrates: themes, sentiment, and verbatim excerpts. It does not replace researcher judgment. Use the sections below to inspect the full coded corpus.</p>
+          <nav class="scrolly-cta" aria-label="Jump to analysis tools">
+            <a href="#themes"><strong>Themes</strong><span>Ranked codes & evidence</span></a>
+            <a href="#discourse-explorer"><strong>Explorer</strong><span>All items & sentiment</span></a>
+            <a href="#explore"><strong>Data</strong><span>Interactive previews</span></a>
+            <a href="notebooks/legal_ai_discourse_analysis.ipynb"><strong>Notebook</strong><span>Reproduce the pipeline</span></a>
+          </nav>
+        </article>
+      </div>
+    </section>
 
     <main>
       <section class="stats-strip" aria-label="Corpus statistics">
@@ -50,11 +217,27 @@
         </article>
       </section>
 
+      <p class="provenance-banner is-sample" id="provenance-banner" aria-live="polite">
+        <span class="provenance-badge" id="provenance-label">Sample corpus</span>
+        <span class="provenance-detail" id="provenance-detail">
+          Offline curated sample in src/sample_reddit_corpus.py: paraphrased Reddit-style discourse for showcase runs.
+        </span>
+        <span class="provenance-meta">
+          Raw file: <a href="data/raw_reddit_posts.csv">data/raw_reddit_posts.csv</a>
+          · Collected <span id="provenance-collected">n/a</span>
+        </span>
+      </p>
+
       <section class="dashboard" id="themes">
         <div class="section-heading">
           <p class="eyebrow">Focused coding output</p>
           <h2>Ranked discourse themes</h2>
           <p>Select a theme to inspect coded evidence, memo logic, and product implications.</p>
+        </div>
+
+        <div class="theme-chart-panel" id="dashboard-theme-viz-wrap">
+          <p class="theme-chart-panel__lede">Each square is one coded post or comment; the thin bar shows relative theme size. Click a row to open that theme.</p>
+          <div id="dashboard-theme-viz" class="theme-freq-chart" aria-label="Theme frequency isotype matrix"></div>
         </div>
 
         <div class="dashboard__grid">
@@ -73,9 +256,35 @@
                 <h2 id="detail-title">Accuracy, trust, and verification anxiety</h2>
                 <p id="detail-statement"></p>
               </div>
-              <div class="share-badge">
-                <strong id="detail-percent"></strong>
-                <span>of corpus</span>
+              <div class="detail-head__meta">
+                <div class="share-badge">
+                  <strong id="detail-percent"></strong>
+                  <span>of corpus</span>
+                </div>
+                <details class="detail-methods" id="detail-methods">
+                  <summary>How are these scores calculated?</summary>
+                  <div class="detail-methods__body">
+                    <dl>
+                      <div>
+                        <dt>% of corpus</dt>
+                        <dd>Share of coded rows assigned to this theme: <em>theme count ÷ total corpus rows × 100</em> (see <code>build_theme_summary</code> in the pipeline).</dd>
+                      </div>
+                      <div>
+                        <dt>Coded items</dt>
+                        <dd>Posts and comments tagged with this theme via keyword rules, with TF-IDF cluster fallback for uncoded rows.</dd>
+                      </div>
+                      <div>
+                        <dt>Mean Reddit score</dt>
+                        <dd>Arithmetic mean of each row’s Reddit <strong>upvote score</strong> in this theme, not sentiment and not a composite index. Excerpt cards show the same per-post score.</dd>
+                      </div>
+                      <div>
+                        <dt>Dominant frame</dt>
+                        <dd>Most frequent rhetorical frame label in the theme subset (e.g. verification-first, organizational-barriers).</dd>
+                      </div>
+                    </dl>
+                    <p class="detail-methods__note" id="detail-methods-provenance">Corpus: sample showcase data unless you run the pipeline with live Reddit API credentials.</p>
+                  </div>
+                </details>
               </div>
             </div>
 
@@ -88,7 +297,7 @@
                 <span id="detail-sentiment"></span>
                 <p>mean Reddit score</p>
               </article>
-              <article>
+              <article id="detail-frame-tile">
                 <span id="detail-frame"></span>
                 <p>dominant frame</p>
               </article>
@@ -97,6 +306,7 @@
             <div class="evidence-layout">
               <section>
                 <h3>Illustrative excerpts</h3>
+                <p class="evidence-note" id="evidence-note"></p>
                 <div id="evidence-list"></div>
               </section>
               <section class="memo-panel">
@@ -110,39 +320,69 @@
         </div>
       </section>
 
-      <section class="downloads" id="downloads">
+      <section class="discourse-explorer" id="discourse-explorer">
+        <div class="section-heading">
+          <p class="eyebrow">Plain analysis view</p>
+          <h2>Discourse explorer</h2>
+          <p>Tabbed theme and sentiment readout with the same layout as the MP2a Flask explorer, embedded in this showcase.</p>
+        </div>
+
+        <div class="explorer-stats" aria-label="Explorer summary">
+          <article>
+            <span id="explorer-stat-items">…</span>
+            <p>items analyzed</p>
+          </article>
+          <article>
+            <span id="explorer-stat-themes">…</span>
+            <p>themes found</p>
+          </article>
+          <article>
+            <span id="explorer-stat-sources">…</span>
+            <p>subreddits</p>
+          </article>
+          <article>
+            <span id="explorer-stat-sentiment">…</span>
+            <p>positive sentiment</p>
+          </article>
+        </div>
+
+        <nav class="explorer-tabs" aria-label="Explorer views"></nav>
+        <div class="explorer-panel" id="explorer-panel"></div>
+      </section>
+
+      <section class="downloads" id="explore">
         <div class="section-heading">
           <p class="eyebrow">Research artifacts</p>
-          <h2>Downloads and method trace</h2>
-          <p>These links point to the generated CSV artifacts used by the static showcase dashboard.</p>
+          <h2>Interactive data previews</h2>
+          <p>Click a card to explore themes, corpus rows, and excerpts. CSV/PNG downloads remain available inside each preview.</p>
         </div>
-        <div class="download-grid">
-          <a class="download-card" href="data/processed_corpus.csv" download>
-            <span>CSV</span>
-            <strong>Processed corpus</strong>
-            <p>Cleaned Reddit rows with primary theme, confidence, and subreddit metadata.</p>
-          </a>
-          <a class="download-card" href="outputs/theme_summary.csv" download>
-            <span>CSV</span>
+        <div class="download-grid preview-grid">
+          <button type="button" class="download-card preview-card" data-preview="theme_summary">
+            <span>Viz</span>
             <strong>Theme summary</strong>
             <p>Frequency-ranked themes with percentages and mean Reddit score.</p>
-          </a>
-          <a class="download-card" href="outputs/illustrative_excerpts.csv" download>
-            <span>CSV</span>
+          </button>
+          <button type="button" class="download-card preview-card" data-preview="processed_corpus">
+            <span>Table</span>
+            <strong>Processed corpus</strong>
+            <p>Cleaned Reddit rows with theme filters and subreddit breakdown.</p>
+          </button>
+          <button type="button" class="download-card preview-card" data-preview="illustrative_excerpts">
+            <span>Cards</span>
             <strong>Illustrative excerpts</strong>
-            <p>Top-scored Reddit excerpts per theme with source URLs.</p>
-          </a>
-          <a class="download-card" href="outputs/memos.md" download>
-            <span>MD</span>
+            <p>Top-scored excerpts per theme with engagement bars.</p>
+          </button>
+          <button type="button" class="download-card preview-card" data-preview="memos">
+            <span>Memo</span>
             <strong>Researcher memos</strong>
             <p>Short interpretive notes grounded in excerpt evidence.</p>
-          </a>
-          <a class="download-card" href="outputs/top_themes.png" download>
-            <span>PNG</span>
+          </button>
+          <button type="button" class="download-card preview-card" data-preview="chart">
+            <span>Chart</span>
             <strong>Top themes chart</strong>
-            <p>Bar chart of theme frequency in the Reddit corpus.</p>
-          </a>
-          <a class="download-card" href="notebooks/legal_ai_discourse_analysis.ipynb" download>
+            <p>Interactive bar chart. Click a bar to inspect that theme.</p>
+          </button>
+          <a class="download-card preview-card preview-card--link" href="notebooks/legal_ai_discourse_analysis.ipynb" download>
             <span>IPYNB</span>
             <strong>Analysis notebook</strong>
             <p>Runnable pipeline walkthrough and artifact inspection.</p>
@@ -151,15 +391,39 @@
 
         <div class="method-note">
           <h3>Method stance</h3>
-          <p>Reddit-only scope. Keyword-assisted coding surfaces candidate themes; the researcher validates definitions, merges/splits codes, and interprets memos. Frequency ranks where to look first—it does not prove saturation or causality.</p>
+          <p>Reddit-only scope. Keyword-assisted coding surfaces candidate themes; the researcher validates definitions, merges/splits codes, and interprets memos. Frequency ranks where to look first. It does not prove saturation or causality.</p>
         </div>
       </section>
     </main>
 
     <footer>
       <p>HCDE 530 Mini Project 2. Public legal-tech discourse only; no private legal matters or client data are included.</p>
+      <p class="footer__copyright">Copyright reserved | Ranjitha Rangaswamy | 2026</p>
     </footer>
 
-    <script src="app.js"></script>
+    <div class="preview-modal" id="preview-modal" hidden role="dialog" aria-modal="true" aria-labelledby="preview-modal-title">
+      <div class="preview-modal__panel">
+        <header class="preview-modal__head">
+          <h2 id="preview-modal-title">Preview</h2>
+          <button type="button" class="preview-modal__close" id="preview-modal-close" aria-label="Close preview">×</button>
+        </header>
+        <div class="preview-modal__body" id="preview-modal-body"></div>
+        <footer class="preview-modal__foot">
+          <a id="preview-modal-download" href="#" download>Download file</a>
+        </footer>
+      </div>
+    </div>
+
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script src="provenance.js?v=20260604"></script>
+    <script src="showcase-data.js?v=20260604"></script>
+    <script src="links.js?v=20260604"></script>
+    <script src="palette.js?v=20260604"></script>
+    <script src="theme-viz.js?v=20260604"></script>
+    <script src="theme-evidence.js?v=20260604"></script>
+    <script src="app.js?v=20260604"></script>
+    <script src="preview.js?v=20260604"></script>
+    <script src="explorer.js?v=20260604"></script>
+    <script src="scrolly.js?v=20260604"></script>
   </body>
 </html>
