@@ -115,6 +115,7 @@ The live collector searches r/LawFirm, r/lawyers, r/LegalTech, r/artificial, and
 | `data/` | Raw and processed CSV outputs |
 | `outputs/` | Theme summaries, excerpts, memos, and chart |
 | `mp2.md` | Competency claims |
+| `competencies.html` | Browser-readable competency claims linked from the top nav |
 | `reflection.md` | 500-word project reflection |
 | `reflection.html` | Browser-readable reflection page linked from the top nav |
 
