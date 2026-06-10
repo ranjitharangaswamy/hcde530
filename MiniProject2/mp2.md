@@ -14,7 +14,7 @@ The public tool is in `MiniProject2/index.html`. The supporting pages are `desig
 
 ### What I learned
 
-A complete tool needs code that runs and a clear front door for someone who did not build it. I added the dashboard because a CSV-only project would make the user do too much work before understanding the point of the project.
+The code has to run, but the project also has to make sense to a person opening it cold. I added the dashboard because a CSV-only version would make the reader do too much work before seeing why the project matters.
 
 ## C4 - APIs and Data Acquisition
 
@@ -28,7 +28,7 @@ The API code is in `src/collect_reddit.py`. The local credential pattern is docu
 
 ### What I learned
 
-The data source matters as much as the analysis. Reddit is useful because it has public practitioner-style discussion, but it is still a partial view. I treat it as public discourse data, not as a full picture of the legal profession.
+Reddit gives me public examples of how people talk about legal AI, especially in informal practitioner spaces. I would not treat those posts as representative of the whole legal profession. I use them as discourse signals, and I keep the source context visible so the reader can judge the limits.
 
 ## C3 - Data Cleaning and File Handling
 
@@ -70,7 +70,7 @@ The visual interface is in `index.html`, `styles.css`, `showcase-data.js`, and t
 
 ### What I learned
 
-A chart should match the shape of the summary table. For DocketSignal, I care more about whether a reader can see the top concerns and then check the evidence.
+The chart has one job here: show which concerns rise to the top without hiding the evidence. I kept the visual simple because long theme labels and small counts do not need a complicated chart.
 
 ## C7 - Critical Evaluation and Professional Judgment
 
@@ -84,7 +84,7 @@ The README, `reflection.md`, `design.html`, and dashboard copy all describe the 
 
 ### What I learned
 
-This is where my law and UX research background meet. From law, I ask what supports the claim and what risk might be hidden. From UX research, I ask who needs the claim and what decision it helps them make. The strongest version of this project is the trace from theme, to excerpt, to source context, to product implication.
+My law and UX research background show up together here. From law, I ask what supports the claim and what risk might be hidden. From UX research, I ask who needs the claim and what decision it helps them make. The useful part is the trace from theme, to excerpt, to source context, to product implication.
 
 ## C2 - Code Literacy and Documentation
 
