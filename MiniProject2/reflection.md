@@ -10,7 +10,7 @@ There are two layers to the final artifact. The Python layer creates the researc
 
 ## What decisions did I make?
 
-I chose a Cursor + Python project because the hard part of this assignment was the data and analysis pipeline. A full web app would have been more work than the project needed. A static dashboard was enough to make the work visible, especially for the MP2 gallery.
+I chose a Cursor + Python project because the hard part of this project was the data and analysis pipeline. A full web app would have been more work than the project needed. A static dashboard was enough to make the work visible, especially for the MP2 gallery.
 
 I kept Reddit as the live data source because it has public discussion from lawyers, law students, legal-tech users, and adjacent professionals. It also has an official API path through PRAW, which made it easier to stay inside a clear data boundary. I dropped broader web scraping and LinkedIn-style collection because those sources would have raised more provenance and terms-of-service issues. For this version, I wanted a smaller scope that I could explain honestly.
 

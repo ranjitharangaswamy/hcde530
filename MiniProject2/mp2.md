@@ -1,6 +1,6 @@
 # MP2 Competency Claims: DocketSignal
 
-These are the competency claims I am making for Mini Project 2. I am writing them the way I wrote Week 3 and Week 6: what I did, where the evidence is, and what I learned from the project.
+These are the competency claims I am making for Mini Project 2. DocketSignal is my tool for turning public legal-AI discourse into themes, evidence excerpts, memos, and product-facing research signals.
 
 ## C8 - Building and Deploying a Complete Tool
 
@@ -42,7 +42,7 @@ The main evidence is `src/pipeline.py`. The output files include `data/processed
 
 ### What I learned
 
-This is similar to my Week 3 cleaning work. If the rows are inconsistent, every later chart or memo becomes weaker. I wanted the project to leave an audit trail, so the cleaned corpus and the coded corpus are both saved instead of only showing the final dashboard.
+If the rows are inconsistent, every later chart or memo becomes weaker. I wanted the project to leave an audit trail, so the cleaned corpus and the coded corpus are both saved instead of only showing the final dashboard.
 
 ## C5 - Data Analysis with Pandas
 
@@ -70,7 +70,7 @@ The visual interface is in `index.html`, `styles.css`, `showcase-data.js`, and t
 
 ### What I learned
 
-This connects to my Week 6 lesson about chart choice. A chart should match the shape of the summary table. For DocketSignal, I care more about whether a reader can see the top concerns and then check the evidence.
+A chart should match the shape of the summary table. For DocketSignal, I care more about whether a reader can see the top concerns and then check the evidence.
 
 ## C7 - Critical Evaluation and Professional Judgment
 
