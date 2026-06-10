@@ -27,7 +27,7 @@
         <p class="eyebrow">Portfolio · HCDE 530 · Mini Project 2</p>
         <h1>Competency claims</h1>
         <p class="design-page__lede">
-          These are the claims I am making for MP2. I am naming the files and outputs because I want the work to be checkable and specific.
+          These are the competency claims I am making for MP2. I am naming what I built, where the evidence is, and what I learned from each part.
         </p>
         <div class="design-page__actions">
           <a class="button button--primary design-page__btn" href="index.html">Open the showcase</a>
@@ -41,61 +41,61 @@
         <div class="section-heading">
           <p class="eyebrow">MP2 claims</p>
           <h2 id="competency-map">What this project demonstrates</h2>
-          <p>Each claim connects the project work to a specific part of the code, interface, or analysis.</p>
+          <p>Each claim connects the project work to a course competency and a specific part of the code, interface, or analysis.</p>
         </div>
 
         <ol class="design-theme-grid">
           <li class="design-theme-card">
             <span class="design-theme-card__index">01</span>
             <div class="design-theme-card__body">
-              <h3>Computational research pipeline</h3>
-              <p class="design-theme-card__layout">Collection to structured artifacts</p>
-              <p>I built a Python pipeline that takes public legal-AI discussion and turns it into structured outputs. <code>src/pipeline.py</code> handles collection, cleaning, deduplication, coding, excerpts, memos, charts, and dashboard export.</p>
+              <h3>C8 - Complete tool</h3>
+              <p class="design-theme-card__layout">Public dashboard plus Python pipeline</p>
+              <p>I built DocketSignal so a legal-tech or UX researcher can scan public legal-AI concerns, then check the excerpts behind each theme. The public tool lives in <code>index.html</code>, with supporting design, competency, and reflection pages.</p>
             </div>
           </li>
 
           <li class="design-theme-card">
             <span class="design-theme-card__index">02</span>
             <div class="design-theme-card__body">
-              <h3>Ethical public-data scope</h3>
-              <p class="design-theme-card__layout">Reddit API, provenance, and boundaries</p>
-              <p>I limited the live collection path to public Reddit posts and comments through PRAW. I did not use private forums, client documents, locked communities, or scraped legal matters.</p>
+              <h3>C4 - API data</h3>
+              <p class="design-theme-card__layout">Reddit API, local credentials, source context</p>
+              <p>I added a live Reddit collection path in <code>src/collect_reddit.py</code> using PRAW. The README and <code>.env.template</code> explain how credentials stay local, and the dashboard keeps subreddit, source type, score, and source link visible.</p>
             </div>
           </li>
 
           <li class="design-theme-card">
             <span class="design-theme-card__index">03</span>
             <div class="design-theme-card__body">
-              <h3>Qualitative interpretation support</h3>
-              <p class="design-theme-card__layout">Transparent coding plus researcher memos</p>
-              <p>I used keyword themes, a TF-IDF/KMeans fallback, sentiment tags, excerpt tables, and memos as starting points for interpretation. The researcher still has to question the labels and compare excerpts.</p>
+              <h3>C3 - Cleaning</h3>
+              <p class="design-theme-card__layout">Messy public text to consistent CSVs</p>
+              <p><code>src/pipeline.py</code> handles sample loading or live collection, cleanup, empty-row checks, deduplication, theme assignment, excerpt selection, and output writing. The cleaned and coded files are saved as an audit trail.</p>
             </div>
           </li>
 
           <li class="design-theme-card">
             <span class="design-theme-card__index">04</span>
             <div class="design-theme-card__body">
-              <h3>Public-facing research communication</h3>
-              <p class="design-theme-card__layout">Dashboard, evidence panels, and source links</p>
-              <p>I built the dashboard so someone can move from a high-level theme to supporting excerpts and source links. The goal is to make legal-tech discourse intelligence understandable quickly.</p>
+              <h3>C5 - Analysis</h3>
+              <p class="design-theme-card__layout">Theme counts plus supporting excerpts</p>
+              <p>The analysis answers practical questions: which legal-AI themes show up most, which excerpts support them, and what source context sits behind each claim. The main outputs are <code>theme_summary.csv</code>, <code>illustrative_excerpts.csv</code>, and <code>memos.md</code>.</p>
             </div>
           </li>
 
           <li class="design-theme-card">
             <span class="design-theme-card__index">05</span>
             <div class="design-theme-card__body">
-              <h3>Runnable project packaging</h3>
-              <p class="design-theme-card__layout">Notebook, scripts, data, and documentation</p>
-              <p>I included setup instructions, public URLs, a notebook, generated outputs, <code>.env.template</code>, <code>requirements.txt</code>, <code>mp2.md</code>, and <code>reflection.md</code>.</p>
+              <h3>C6 - Visualization</h3>
+              <p class="design-theme-card__layout">Ranked themes and evidence panels</p>
+              <p>I used simple ranked views because the labels are long and the goal is comparison. This follows my Week 6 lesson: the chart should match the summary table and help the reader check the point quickly.</p>
             </div>
           </li>
 
           <li class="design-theme-card">
             <span class="design-theme-card__index">06</span>
             <div class="design-theme-card__body">
-              <h3>Law plus UX research</h3>
-              <p class="design-theme-card__layout">Cross-disciplinary framing</p>
-              <p>I used legal reasoning to notice citations, confidentiality, billing, sanctions risk, and governance. I used UX research to turn those concerns into coded themes, evidence panels, memos, and product implications.</p>
+              <h3>C7 - Judgment</h3>
+              <p class="design-theme-card__layout">Limits, evidence, and product use</p>
+              <p>I scoped the tool as research support. Reddit posts are public discourse signals, not verified facts or legal advice. The stronger claim is the trace from theme, to excerpt, to source context, to product implication.</p>
             </div>
           </li>
         </ol>
@@ -103,13 +103,13 @@
 
       <section class="design-story design-story--alt" aria-labelledby="competency-cross-discipline">
         <div class="design-story__inner">
-          <p class="design-story__kicker">Cross-discipline claim</p>
-          <h2 id="competency-cross-discipline">Legal reasoning shapes the UX research question</h2>
+          <p class="design-story__kicker">C2 - Documentation and cross-discipline framing</p>
+          <h2 id="competency-cross-discipline">The project has to be understandable to someone else</h2>
           <p>
-            DocketSignal frames public legal-AI discourse as user research for legal-tech product decisions. The legal side helped me identify what matters: citation trust, confidentiality, professional responsibility, billing incentives, sanctions risk, and governance inside firms. The UX side helped me turn that discourse into coded patterns, evidence panels, memos, and product implications that a stakeholder can inspect.
+            I packaged the project so someone else can understand the input, the output, and the limits. The README, <code>mp2.md</code>, <code>reflection.md</code>, <code>.env.template</code>, notebook, and generated CSVs make the work easier to inspect.
           </p>
           <p>
-            This is where the project fits my background. Legal training pushes me to ask what supports a claim. UX research pushes me to ask who needs the claim, what decision it informs, and how quickly someone can check the evidence. DocketSignal is built around that overlap.
+            This is also where the project fits my background. From law, I ask what supports the claim and what risk might be hidden. From UX research, I ask who needs the claim and what decision it helps them make.
           </p>
         </div>
       </section>

@@ -1,51 +1,101 @@
 # MP2 Competency Claims: DocketSignal
 
-These are the claims I am making for MP2. I am naming the files and outputs because I want the work to be checkable and specific.
+These are the competency claims I am making for Mini Project 2. I am writing them the way I wrote Week 3 and Week 6: what I did, where the evidence is, and what I learned from the project.
 
-## Claim 1: I can build a computational pipeline that turns messy public text into usable research material.
+## C8 - Building and Deploying a Complete Tool
 
-What I did: I built a Python pipeline that takes public legal-AI discussion and turns it into structured outputs. The main work is in `src/pipeline.py`. It handles collection or sample loading, cleaning, deduplication, theme coding, excerpt selection, memo generation, chart creation, and dashboard export.
+### What I built
 
-Where it shows up: the pipeline creates files like `data/processed_corpus.csv`, `data/qualitative_corpus.csv`, `outputs/theme_summary.csv`, `outputs/illustrative_excerpts.csv`, and `outputs/memos.md`.
+I built DocketSignal, a small public dashboard and Python pipeline for reading legal-AI discourse on Reddit. The use case is simple: a legal-tech researcher or UX researcher can look at public conversations and quickly see what people are worried about, such as fake citations, confidentiality, billing pressure, governance, junior lawyer anxiety, and workflow fit.
 
-Why this matters: the dashboard is backed by a repeatable process instead of hand-written examples. I can rerun the project with sample data or live Reddit credentials and get a new set of research artifacts.
+### Where the evidence is
 
-## Claim 2: I can make careful data-scope decisions when working with public discourse.
+The public tool is in `MiniProject2/index.html`. The supporting pages are `design.html`, `competencies.html`, and `reflection.html`. The pipeline and outputs are in `src/`, `data/`, and `outputs/`. The README explains how to run the sample version and how to connect Reddit credentials for live collection.
 
-What I did: I limited the live collection path to public Reddit posts and comments through the official Reddit API using PRAW in `src/collect_reddit.py`. I did not use private forums, client documents, locked communities, or scraped legal matters. I also kept the project clear that it is a research tool and not legal advice.
+### What I learned
 
-Where it shows up: the README explains the Reddit source scope, the `.env.template` shows how credentials are handled locally, and `provenance.js` keeps source information visible in the dashboard.
+A complete tool needs code that runs and a clear front door for someone who did not build it. I added the dashboard because a CSV-only project would make the user do too much work before understanding the point of the project.
 
-Why this matters: legal-tech research can easily drift into sensitive data. I wanted the project to stay inside a public, inspectable, and lower-risk data boundary. That choice also makes the project easier for someone else to run and evaluate.
+## C4 - APIs and Data Acquisition
 
-## Claim 3: I can use computational methods to support qualitative interpretation.
+### What I built
 
-What I did: I used transparent keyword themes for legal-AI discourse and a TF-IDF/KMeans fallback for rows that do not match the first pass. `src/qualitative.py` adds sentiment, emotion, and rhetorical-frame tags. I treated those outputs as starting points for interpretation, not as final truth.
+I added a live Reddit collection path using PRAW in `src/collect_reddit.py`. The script can pull public posts and comments from selected legal and AI-related subreddits, then pass those rows into the same analysis pipeline as the sample data.
 
-Where it shows up: the coded corpus, theme table, illustrative excerpts, and memo file all connect counts back to rows and excerpts. The dashboard keeps excerpts close to each theme so the viewer can inspect what the code is based on.
+### Where the evidence is
 
-Why this matters: this connects to the Charmaz-style work I wanted to practice. The computer helps sort and surface patterns, but the researcher still has to compare excerpts, question the theme labels, and decide what the pattern means.
+The API code is in `src/collect_reddit.py`. The local credential pattern is documented in `.env.template` and the README. The project does not commit Reddit keys. The dashboard keeps source context visible through fields like subreddit, source type, score, and source link.
 
-## Claim 4: I can design an interface that makes analysis legible to someone outside the class.
+### What I learned
 
-What I did: I built a static dashboard in `index.html`, `styles.css`, and the supporting JavaScript files. It shows the project title, corpus context, ranked themes, evidence excerpts, memos, charts, and data exploration. I also added design thinking, competency, and reflection pages so the showcase explains the work behind the interface.
+The data source matters as much as the analysis. Reddit is useful because it has public practitioner-style discussion, but it is still a partial view. I treat it as public discourse data, not as a full picture of the legal profession.
 
-Where it shows up: the dashboard lets someone move from a high-level theme to supporting excerpts and source links. The evidence panels keep source type and context visible instead of hiding the material behind a single summary.
+## C3 - Data Cleaning and File Handling
 
-Why this matters: my goal was to make the project understandable in a gallery setting. Someone should be able to see quickly that this is legal-tech discourse intelligence, then inspect the evidence if they want to know how the claim was made.
+### What I built
 
-## Claim 5: I can package a project so another person can run, inspect, and evaluate it.
+I built a repeatable pipeline that turns messy text rows into consistent CSV outputs. The pipeline handles sample loading or live collection, text cleanup, empty-row checks, deduplication, theme assignment, excerpt selection, and output writing.
 
-What I did: I included the code, generated data outputs, notebook, README, `.env.template`, `requirements.txt`, `mp2.md`, and `reflection.md`. The README explains what the tool does, who it is for, how to run the sample path, how to enable live Reddit collection, and where to view the public dashboard.
+### Where the evidence is
 
-Where it shows up: the project can be reviewed through the static site, the notebook, the CSV files, or the Python scripts. The same project has both a polished front door and inspectable source files.
+The main evidence is `src/pipeline.py`. The output files include `data/processed_corpus.csv`, `data/qualitative_corpus.csv`, `outputs/theme_summary.csv`, `outputs/illustrative_excerpts.csv`, and `outputs/memos.md`.
 
-Why this matters: a clear deliverable needs more than a working script. It needs enough documentation that another person can understand the scope, reproduce the output, and see what decisions shaped the final artifact.
+### What I learned
 
-## Claim 6: I can merge legal reasoning with UX research to frame a product-relevant research question.
+This is similar to my Week 3 cleaning work. If the rows are inconsistent, every later chart or memo becomes weaker. I wanted the project to leave an audit trail, so the cleaned corpus and the coded corpus are both saved instead of only showing the final dashboard.
 
-What I did: I used legal reasoning to decide which signals mattered: citation trust, hallucinated cases, confidentiality, professional responsibility, billing pressure, sanctions risk, governance, and adoption inside firms. I used UX research methods to turn those public conversations into themes, evidence panels, memos, and product implications.
+## C5 - Data Analysis with Pandas
 
-Where it shows up: the design thinking page explains this cross-discipline stance directly. The dashboard also reflects it through source links, short excerpts, subreddit context, scores, and memos that connect user concerns to product decisions.
+### What I built
 
-Why this matters: this is the part of the project that feels most like my own work. Law trained me to ask what supports a claim and what risk sits behind it. UX research trained me to ask who needs the claim, what decision it helps with, and how to make the evidence easier to inspect. DocketSignal sits at that overlap.
+I used the corpus to answer practical analysis questions: which legal-AI themes show up most often, which excerpts support each theme, and what source context sits behind each claim. The analysis produces theme counts, percentages, example excerpts, and summary memos.
+
+### Where the evidence is
+
+The analysis logic is in `src/pipeline.py` and `src/qualitative.py`. The outputs are in `outputs/theme_summary.csv`, `outputs/illustrative_excerpts.csv`, and `outputs/memos.md`.
+
+### What I learned
+
+The count is only a starting point. A theme with a high count tells me where the discourse is concentrated, but the excerpt tells me what the concern actually sounds like. That is why the dashboard keeps counts and evidence together.
+
+## C6 - Data Visualization
+
+### What I built
+
+I used the dashboard to visualize theme rankings and corpus signals. The chart choice is intentionally simple because the theme labels are long and the goal is comparison. A ranked bar-style view is easier to read than a complicated chart for this kind of data.
+
+### Where the evidence is
+
+The visual interface is in `index.html`, `styles.css`, `showcase-data.js`, and the generated chart output in `outputs/`. The dashboard also includes evidence panels so the viewer can move from a chart to the actual excerpts.
+
+### What I learned
+
+This connects to my Week 6 lesson about chart choice. A chart should match the shape of the summary table. For DocketSignal, I care more about whether a reader can see the top concerns and then check the evidence.
+
+## C7 - Critical Evaluation and Professional Judgment
+
+### What I built
+
+I kept the tool scoped as research support. It does not present Reddit posts as verified facts, legal advice, or a complete view of legal practice. It gives a researcher a first pass on public discourse and keeps enough context visible for checking.
+
+### Where the evidence is
+
+The README, `reflection.md`, `design.html`, and dashboard copy all describe the limits of the project. The evidence panels show source type and excerpts so a viewer can inspect the basis for a theme.
+
+### What I learned
+
+This is where my law and UX research background meet. From law, I ask what supports the claim and what risk might be hidden. From UX research, I ask who needs the claim and what decision it helps them make. The strongest version of this project is the trace from theme, to excerpt, to source context, to product implication.
+
+## C2 - Code Literacy and Documentation
+
+### What I built
+
+I packaged the project so someone else can understand it without asking me to explain every file. The README explains what the tool does, who it is for, how to run it, how live Reddit collection works, and where the public version is.
+
+### Where the evidence is
+
+The documentation is in `README.md`, `mp2.md`, `reflection.md`, `.env.template`, and the comments/docstrings inside the Python files. The notebook and generated CSVs also make the workflow easier to inspect.
+
+### What I learned
+
+Documentation is part of the tool. If a future collaborator cannot tell what the input is, what the output is, and what the limits are, then the tool is not really usable. I tried to write the docs so a person outside this class could still understand the project.
