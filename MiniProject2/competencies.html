@@ -50,7 +50,7 @@
             <div class="design-theme-card__body">
               <h3>C8 - Complete tool</h3>
               <p class="design-theme-card__layout">Public dashboard plus Python pipeline</p>
-              <p>I built DocketSignal so a legal-tech or UX researcher can scan public legal-AI concerns, then check the excerpts behind each theme. The public tool lives in <code>index.html</code>, with supporting design, competency, and reflection pages.</p>
+              <p>I built DocketSignal so a legal-tech or UX researcher can scan public legal-AI concerns, then check the excerpts behind each theme. The public version is at <code>ranjitharangaswamy.com/DocketSignal/</code>.</p>
             </div>
           </li>
 
@@ -59,7 +59,7 @@
             <div class="design-theme-card__body">
               <h3>C4 - API data</h3>
               <p class="design-theme-card__layout">Reddit API, local credentials, source context</p>
-              <p>I added a live Reddit collection path in <code>src/collect_reddit.py</code> using PRAW. The README and <code>.env.template</code> explain how credentials stay local, and the dashboard keeps subreddit, source type, score, and source link visible.</p>
+              <p>I added live Reddit collection in <code>src/collect_reddit.py</code> and kept a sample fallback so the project still runs without my credentials. The README and <code>.env.template</code> explain the setup.</p>
             </div>
           </li>
 
@@ -68,7 +68,7 @@
             <div class="design-theme-card__body">
               <h3>C3 - Cleaning</h3>
               <p class="design-theme-card__layout">Messy public text to consistent CSVs</p>
-              <p><code>src/pipeline.py</code> handles sample loading or live collection, cleanup, empty-row checks, deduplication, theme assignment, excerpt selection, and output writing. The cleaned and coded files are saved as an audit trail.</p>
+              <p><code>src/pipeline.py</code> handles sample loading or live collection, cleanup, empty-row checks, deduplication, theme assignment, excerpt selection, and output writing. The cleaned and coded CSVs are saved so the dashboard can be checked.</p>
             </div>
           </li>
 
@@ -77,7 +77,7 @@
             <div class="design-theme-card__body">
               <h3>C5 - Analysis</h3>
               <p class="design-theme-card__layout">Theme counts plus supporting excerpts</p>
-              <p>The analysis answers practical questions: which legal-AI themes show up most, which excerpts support them, and what source context sits behind each claim. The main outputs are <code>theme_summary.csv</code>, <code>illustrative_excerpts.csv</code>, and <code>memos.md</code>.</p>
+              <p>The analysis answers practical questions: which legal-AI themes show up most, which excerpts support them, and what source context sits behind each claim. I kept counts next to excerpts because the excerpt shows what the concern actually sounds like.</p>
             </div>
           </li>
 
@@ -86,7 +86,7 @@
             <div class="design-theme-card__body">
               <h3>C6 - Visualization</h3>
               <p class="design-theme-card__layout">Ranked themes and evidence panels</p>
-              <p>I used simple ranked views because the labels are long and the goal is comparison. The chart should match the summary table and help the reader check the point quickly.</p>
+              <p>I used simple ranked views because the labels are long and the goal is comparison. I avoided a more decorative chart because it would make the project look more analytical than the data supports.</p>
             </div>
           </li>
 
@@ -95,7 +95,7 @@
             <div class="design-theme-card__body">
               <h3>C7 - Judgment</h3>
               <p class="design-theme-card__layout">Limits, evidence, and product use</p>
-              <p>I scoped the tool as research support. Reddit posts are public discourse signals, not verified facts or legal advice. The useful part is the trace from theme, to excerpt, to source context, to product implication.</p>
+              <p>I scoped the tool as research support. Reddit posts are public discourse signals, not verified facts or legal advice. My judgment call was to keep those limits visible.</p>
             </div>
           </li>
         </ol>
@@ -106,7 +106,7 @@
           <p class="design-story__kicker">C2 - Documentation and cross-discipline framing</p>
           <h2 id="competency-cross-discipline">The project has to be understandable to someone else</h2>
           <p>
-            I packaged the project so someone else can understand the input, the output, and the limits. The README, <code>mp2.md</code>, <code>reflection.md</code>, <code>.env.template</code>, notebook, and generated CSVs make the work easier to inspect.
+            I packaged the project so someone else can understand the input, the output, and the limits. The README, <code>mp2.md</code>, <code>reflection.md</code>, <code>.env.template</code>, notebook, and generated CSVs answer what the tool takes in, what it returns, and what should not be overclaimed.
           </p>
           <p>
             My law and UX research background show up together here. From law, I ask what supports the claim and what risk might be hidden. From UX research, I ask who needs the claim and what decision it helps them make.

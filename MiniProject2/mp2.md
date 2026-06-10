@@ -10,17 +10,17 @@ I built DocketSignal, a small public dashboard and Python pipeline for reading l
 
 ### Where the evidence is
 
-The public tool is in `MiniProject2/index.html`. The supporting pages are `design.html`, `competencies.html`, and `reflection.html`. The pipeline and outputs are in `src/`, `data/`, and `outputs/`. The README explains how to run the sample version and how to connect Reddit credentials for live collection.
+The public version is at `https://ranjitharangaswamy.com/DocketSignal/`. The GitHub Pages fallback is `https://ranjitharangaswamy.github.io/DocketSignal/`. The local tool is in `MiniProject2/index.html`, with supporting pages in `design.html`, `competencies.html`, and `reflection.html`. The pipeline and outputs are in `src/`, `data/`, and `outputs/`.
 
 ### What I learned
 
-The code has to run, but the project also has to make sense to a person opening it cold. I added the dashboard because a CSV-only version would make the reader do too much work before seeing why the project matters.
+The first version was mostly pipeline outputs. It technically worked. It still did not explain the use case fast enough. I added the dashboard because a CSV-only version would make the reader do too much work before seeing why the project matters.
 
 ## C4 - APIs and Data Acquisition
 
 ### What I built
 
-I added a live Reddit collection path using PRAW in `src/collect_reddit.py`. The script can pull public posts and comments from selected legal and AI-related subreddits, then pass those rows into the same analysis pipeline as the sample data.
+I added a live Reddit collection path using PRAW in `src/collect_reddit.py`. The script can pull public posts and comments from selected legal and AI-related subreddits, then pass those rows into the same analysis pipeline as the sample data. I also kept a sample corpus path so the project still runs without my Reddit credentials.
 
 ### Where the evidence is
 
@@ -28,7 +28,7 @@ The API code is in `src/collect_reddit.py`. The local credential pattern is docu
 
 ### What I learned
 
-Reddit gives me public examples of how people talk about legal AI, especially in informal practitioner spaces. I would not treat those posts as representative of the whole legal profession. I use them as discourse signals, and I keep the source context visible so the reader can judge the limits.
+The problem I had to solve was live data without exposing keys or breaking the project for someone else. I kept credentials in `.env`, documented the setup in the README, and kept the sample fallback. Reddit gives public examples of how people talk about legal AI, but I would not treat those posts as representative of the whole legal profession.
 
 ## C3 - Data Cleaning and File Handling
 
@@ -42,7 +42,7 @@ The main evidence is `src/pipeline.py`. The output files include `data/processed
 
 ### What I learned
 
-If the rows are inconsistent, every later chart or memo becomes weaker. I wanted the project to leave an audit trail, so the cleaned corpus and the coded corpus are both saved instead of only showing the final dashboard.
+The data problem here is that Reddit text is uneven: titles, comments, scores, subreddits, and links do not arrive as a clean research table. If those rows are inconsistent, every later chart or memo becomes weaker. I saved the cleaned corpus and coded corpus so the dashboard is not the only place where the work can be checked.
 
 ## C5 - Data Analysis with Pandas
 
@@ -56,7 +56,7 @@ The analysis logic is in `src/pipeline.py` and `src/qualitative.py`. The outputs
 
 ### What I learned
 
-The count is only a starting point. A theme with a high count tells me where the discourse is concentrated, but the excerpt tells me what the concern actually sounds like. That is why the dashboard keeps counts and evidence together.
+The analysis decision was to keep counts next to excerpts. A theme with a high count tells me where the discourse is concentrated. The excerpt tells me what the concern actually sounds like. Without the excerpt, the theme label can sound more certain than it should.
 
 ## C6 - Data Visualization
 
@@ -70,7 +70,7 @@ The visual interface is in `index.html`, `styles.css`, `showcase-data.js`, and t
 
 ### What I learned
 
-The chart has one job here: show which concerns rise to the top without hiding the evidence. I kept the visual simple because long theme labels and small counts do not need a complicated chart.
+I avoided a more decorative chart because it would make the project look more analytical than the data supports. The chart has one job here: show which concerns rise to the top without hiding the evidence.
 
 ## C7 - Critical Evaluation and Professional Judgment
 
@@ -84,7 +84,7 @@ The README, `reflection.md`, `design.html`, and dashboard copy all describe the 
 
 ### What I learned
 
-My law and UX research background show up together here. From law, I ask what supports the claim and what risk might be hidden. From UX research, I ask who needs the claim and what decision it helps them make. The useful part is the trace from theme, to excerpt, to source context, to product implication.
+My judgment call was to make the limits visible instead of trying to make the tool sound more complete than it is. From law, I ask what supports the claim and what risk might be hidden. From UX research, I ask who needs the claim and what decision it helps them make. The useful part is the trace from theme, to excerpt, to source context, to product implication.
 
 ## C2 - Code Literacy and Documentation
 
@@ -98,4 +98,4 @@ The documentation is in `README.md`, `mp2.md`, `reflection.md`, `.env.template`,
 
 ### What I learned
 
-Documentation is part of the tool. If a future collaborator cannot tell what the input is, what the output is, and what the limits are, then the tool is not really usable. I tried to write the docs so a person outside this class could still understand the project.
+The documentation had to answer the questions I would ask if I were opening someone else's project: what does it take in, what does it return, where can I see it, and what should I not overclaim? I wrote the README, reflection, and competency file around those questions.
